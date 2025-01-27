@@ -5,4 +5,4 @@ https://github.com/yonggekkk/sing-box-yg
 نصب
 
 
-# bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/start.sh)
+# bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/start.sh) # 
