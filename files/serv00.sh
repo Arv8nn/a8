@@ -18,9 +18,9 @@ WORKDIR="${HOME}/domains/${USERNAME}.serv00.net/logs"
 
 read_ip() {
 cat ip.txt
-reading "请输入上面三个IP中的任意一个 (建议默认回车自动选择可用IP): " IP
+reading "Please enter the above threeIPAnyone in the middle (It is recommended to automatically select available in the default return.IP): " IP
 if [[ -z "$IP" ]]; then
-IP=$(grep -m 1 "可用" ip.txt | awk -F ':' '{print $1}')
+IP=$(grep -m 1 "Available" ip.txt | awk -F ':' '{print $1}')
 if [ -z "$IP" ]; then
 IP=$(okip)
 if [ -z "$IP" ]; then
@@ -28,28 +28,28 @@ IP=$(head -n 1 ip.txt | awk -F ':' '{print $1}')
 fi
 fi
 fi
-green "你选择的IP为: $IP"
+green "You choseIPfor: $IP"
 }
 
 read_uuid() {
-        reading "请输入统一的uuid密码 (建议回车默认随机): " UUID
+        reading "Please enter the unifieduuidpassword (It is recommended to return to the default random): " UUID
         if [[ -z "$UUID" ]]; then
 	   UUID=$(uuidgen -r)
         fi
-	green "你的uuid为: $UUID"
+	green "youruuidfor: $UUID"
 }
 
 read_reym() {
-        yellow "方式一：回车使用CF域名，支持proxyip+非标端口反代ip功能 (推荐)"
-	yellow "方式二：输入 s 表示使用Serv00自带域名，不支持proxyip功能 (推荐)"
-        yellow "方式三：支持其他域名，注意要符合reality域名规则"
-        reading "请输入reality域名 【请选择 回车 或者 s 或者 输入域名】: " reym
+        yellow "One way：EnterCFdomain name，supportproxyip+Non -standard port anti -inverteripFunction (recommend)"
+	yellow "Two ways：enter s UseServ00Combined domain name，Not supportproxyipFunction (recommend)"
+        yellow "Method three：Support other domain names，Pay attention to meetrealityDomain name rule"
+        reading "Please enterrealitydomain name 【Choose Return or s or 输入domain name】: " reym
         if [[ -z "$reym" ]]; then
            reym=www.speedtest.net
 	elif [[ "$reym" == "s" || "$reym" == "S" ]]; then
            reym=$USERNAME.serv00.net
         fi
-	green "你的reality域名为: $reym"
+	green "yourrealityDomain name: $reym"
 }
 
 check_port () {
@@ -58,13 +58,13 @@ tcp_ports=$(echo "$port_list" | grep -c "tcp")
 udp_ports=$(echo "$port_list" | grep -c "udp")
 
 if [[ $tcp_ports -ne 2 || $udp_ports -ne 1 ]]; then
-    red "端口数量不符合要求，正在调整..."
+    red "The number of ports does not meet the requirements，Adjust..."
 
     if [[ $tcp_ports -gt 2 ]]; then
         tcp_to_delete=$((tcp_ports - 2))
         echo "$port_list" | awk '/tcp/ {print $1, $2}' | head -n $tcp_to_delete | while read port type; do
             devil port del $type $port
-            green "已删除TCP端口: $port"
+            green "DeletedTCPport: $port"
         done
     fi
 
@@ -72,7 +72,7 @@ if [[ $tcp_ports -ne 2 || $udp_ports -ne 1 ]]; then
         udp_to_delete=$((udp_ports - 1))
         echo "$port_list" | awk '/udp/ {print $1, $2}' | head -n $udp_to_delete | while read port type; do
             devil port del $type $port
-            green "已删除UDP端口: $port"
+            green "DeletedUDPport: $port"
         done
     fi
 
@@ -83,7 +83,7 @@ if [[ $tcp_ports -ne 2 || $udp_ports -ne 1 ]]; then
             tcp_port=$(shuf -i 10000-65535 -n 1) 
             result=$(devil port add tcp $tcp_port 2>&1)
             if [[ $result == *"succesfully"* ]]; then
-                green "已添加TCP端口: $tcp_port"
+                green "Have been addedTCPport: $tcp_port"
                 if [[ $tcp_ports_added -eq 0 ]]; then
                     tcp_port1=$tcp_port
                 else
@@ -91,7 +91,7 @@ if [[ $tcp_ports -ne 2 || $udp_ports -ne 1 ]]; then
                 fi
                 tcp_ports_added=$((tcp_ports_added + 1))
             else
-                yellow "端口 $tcp_port 不可用，尝试其他端口..."
+                yellow "port $tcp_port Unavailable，尝试其他port..."
             fi
         done
     fi
@@ -101,14 +101,14 @@ if [[ $tcp_ports -ne 2 || $udp_ports -ne 1 ]]; then
             udp_port=$(shuf -i 10000-65535 -n 1) 
             result=$(devil port add udp $udp_port 2>&1)
             if [[ $result == *"succesfully"* ]]; then
-                green "已添加UDP端口: $udp_port"
+                green "Have been addedUDPport: $udp_port"
                 break
             else
-                yellow "端口 $udp_port 不可用，尝试其他端口..."
+                yellow "port $udp_port Unavailable，尝试其他port..."
             fi
         done
     fi
-    green "端口已调整完成,将断开ssh连接,请重新连接shh重新执行脚本"
+    green "The port has been adjusted to complete,Will disconnectsshconnect,请重新connectshhRe -execute the script"
     devil binexec on >/dev/null 2>&1
     kill -9 $(ps -o ppid= -p $$) >/dev/null 2>&1
 else
@@ -117,24 +117,24 @@ else
     tcp_port2=$(echo "$tcp_ports" | sed -n '2p')
     udp_port=$(echo "$port_list" | awk '/udp/ {print $1}')
 
-    purple "当前TCP端口: $tcp_port1 和 $tcp_port2"
-    purple "当前UDP端口: $udp_port"
+    purple "currentTCPport: $tcp_port1 and $tcp_port2"
+    purple "currentUDPport: $udp_port"
 fi
 
 export vless_port=$tcp_port1
 export vmess_port=$tcp_port2
 export hy2_port=$udp_port
-green "你的vless-reality端口: $vless_port"
-green "你的vmess-ws端口(设置Argo固定域名端口): $vmess_port"
-green "你的hysteria2端口: $hy2_port"
+green "yourvless-realityport: $vless_port"
+green "yourvmess-wsport(set upArgo固定域名port): $vmess_port"
+green "yourhysteria2port: $hy2_port"
 sleep 2
 }
 
 install_singbox() {
 if [[ -e $WORKDIR/list.txt ]]; then
-yellow "已安装sing-box，请先选择2卸载，再执行安装" && exit
+yellow "Installedsing-box，Please choose first2uninstall，Perform the installation" && exit
 fi
-yellow "为确保节点可用性，建议在Serv00网页不设置端口，脚本会随机生成有效端口"
+yellow "To ensure node usability，ProposeServ00The webpage does not have a port，The script will be randomly generated"
 sleep 2
         cd $WORKDIR
 	echo
@@ -160,7 +160,7 @@ sleep 2
 }
 
 uninstall_singbox() {
-  reading "\n确定要卸载吗？【y/n】: " choice
+  reading "\nAre you sure you want to uninstall?？【y/n】: " choice
     case "$choice" in
        [Yy])
 	  bash -c 'ps aux | grep $(whoami) | grep -v "sshd\|bash\|grep" | awk "{print \$2}" | xargs -r kill -9 >/dev/null 2>&1' >/dev/null 2>&1
@@ -169,15 +169,15 @@ uninstall_singbox() {
           crontab rmcron >/dev/null 2>&1
           rm rmcron
           clear
-          green "已完全卸载"
+          green "Remove completely"
           ;;
         [Nn]) exit 0 ;;
-    	*) red "无效的选择，请输入y或n" && menu ;;
+    	*) red "Invalid choice，Please enteryorn" && menu ;;
     esac
 }
 
 kill_all_tasks() {
-reading "\n清理所有进程并清空所有安装内容，将退出ssh连接，确定继续清理吗？【y/n】: " choice
+reading "\nClean up all the processes and clear all the installation content，Withdrawsshconnect，Are you sure to continue cleaning up？【y/n】: " choice
   case "$choice" in
     [Yy]) 
     bash -c 'ps aux | grep $(whoami) | grep -v "sshd\|bash\|grep" | awk "{print \$2}" | xargs -r kill -9 >/dev/null 2>&1' >/dev/null 2>&1
@@ -199,21 +199,21 @@ reading "\n清理所有进程并清空所有安装内容，将退出ssh连接，
 # Generating argo Config
 argo_configure() {
   while true; do
-    yellow "方式一：Argo临时隧道 (无需域名，推荐)"
-    yellow "方式二：Argo固定隧道 (需要域名，需要CF设置提取Token)"
-    echo -e "${red}注意：${purple}Argo固定隧道使用Token时，需要在cloudflare后台设置隧道端口，该端口必须与vmess-ws的tcp端口 $vmess_port 一致)${re}"
-    reading "输入 g 表示使用Argo固定隧道，回车跳过表示使用Argo临时隧道 【请选择 g 或者 回车】: " argo_choice
+    yellow "One way：ArgoTemporary tunnel (No domain name，recommend)"
+    yellow "Two ways：ArgoFixed tunnel (Need a domain name，needCFSet up extractToken)"
+    echo -e "${red}Notice：${purple}ArgoFixed tunnel useTokenhour，Need incloudflareSet the tunnel port in the background，The port must be withvmess-wsoftcpport $vmess_port Consistent)${re}"
+    reading "enter g UseArgoFixed tunnel，Return跳过UseArgoTemporary tunnel 【Choose g or Return】: " argo_choice
     if [[ "$argo_choice" != "g" && "$argo_choice" != "G" && -n "$argo_choice" ]]; then
-        red "无效的选择，请输入 g 或回车"
+        red "Invalid choice，Please enter g Or Enter"
         continue
     fi
     if [[ "$argo_choice" == "g" || "$argo_choice" == "G" ]]; then
-        reading "请输入argo固定隧道域名: " ARGO_DOMAIN
-        green "你的argo固定隧道域名为: $ARGO_DOMAIN"
-        reading "请输入argo固定隧道密钥（当你粘贴Token时，必须以ey开头）: " ARGO_AUTH
-        green "你的argo固定隧道密钥为: $ARGO_AUTH"
+        reading "Please enterargoFixed tunnel domain name: " ARGO_DOMAIN
+        green "yourargoThe domain name of the fixed tunnel is: $ARGO_DOMAIN"
+        reading "Please enterargoFixed tunnel key（When you pasteTokenhour，Musteybeginning）: " ARGO_AUTH
+        green "yourargoThe fixed tunnel key is: $ARGO_AUTH"
     else
-        green "使用Argo临时隧道"
+        green "useArgoTemporary tunnel"
     fi
     break
 done
@@ -473,19 +473,19 @@ if [ -e "$(basename "${FILE_MAP[web]}")" ]; then
     nohup ./"$sbb" run -c config.json >/dev/null 2>&1 &
     sleep 5
 if pgrep -x "$sbb" > /dev/null; then
-    green "$sbb 主进程已启动"
+    green "$sbb The main process has been started"
 else
 for ((i=1; i<=5; i++)); do
-    red "$sbb 主进程未启动, 重启中... (尝试次数: $i)"
+    red "$sbb The main process has not started, Restart... (Number of attempts: $i)"
     pkill -x "$sbb"
     nohup ./"$sbb" run -c config.json >/dev/null 2>&1 &
     sleep 5
     if pgrep -x "$sbb" > /dev/null; then
-        purple "$sbb 主进程已成功重启"
+        purple "$sbb The main process has been successfully restarted"
         break
     fi
     if [[ $i -eq 5 ]]; then
-        red "$sbb 主进程重启失败"
+        red "$sbb The main process restarts failed"
     fi
 done
 fi
@@ -507,23 +507,23 @@ if [ -e "$(basename "${FILE_MAP[bot]}")" ]; then
     nohup ./"$agg" $args >/dev/null 2>&1 &
     sleep 10
 if pgrep -x "$agg" > /dev/null; then
-    green "$agg Argo进程已启动"
+    green "$agg ArgoThe process has been started"
 else
-    red "$agg Argo进程未启动, 重启中..."
+    red "$agg ArgoThe process is not started, Restart..."
     pkill -x "$agg"
     nohup ./"$agg" "${args}" >/dev/null 2>&1 &
     sleep 5
-    purple "$agg Argo进程已重启"
+    purple "$agg ArgoThe process has restarted"
 fi
 fi
 sleep 2
 if ! pgrep -x "$(cat sb.txt)" > /dev/null; then
-red "主进程未启动，根据以下情况一一排查"
-yellow "1、网页端权限是否开启"
-yellow "2、网页后台删除所有端口，让脚本自动生成随机可用端口"
-yellow "3、选择5重置"
-yellow "4、当前Serv00服务器炸了？等会再试"
-red "5、以上都试了，哥直接躺平，交给进程保活，过会再来看"
+red "The main process has not started，Check them one by one according to the following conditions"
+yellow "1、Whether the web is open"
+yellow "2、Delete all ports in the web background，Let the script automatically generate random available port"
+yellow "3、choose5Repossess"
+yellow "4、currentServ00The server exploded？Try again"
+red "5、Try it all above，Brother lying directly，Give it to the process guarantee，Let's look at it again"
 sleep 6
 fi
 }
@@ -545,7 +545,7 @@ get_argodomain() {
       sleep 2
     done  
     if [ -z ${argodomain} ]; then
-    argodomain="Argo临时域名暂时获取失败，Argo节点暂不可用"
+    argodomain="ArgoTemporary domain names temporarily failed，ArgoNode is not available for the time being"
     fi
     echo "$argodomain"
   fi
@@ -553,7 +553,7 @@ get_argodomain() {
 
 get_links(){
 argodomain=$(get_argodomain)
-echo -e "\e[1;32mArgo域名：\e[1;35m${argodomain}\e[0m\n"
+echo -e "\e[1;32mArgodomain name：\e[1;35m${argodomain}\e[0m\n"
 ISP=$(curl -sL --max-time 5 https://speed.cloudflare.com/meta | awk -F\" '{print $26}' | sed -e 's/ /_/g' || echo "0")
 get_name() { if [ "$HOSTNAME" = "s1.ct8.pl" ]; then SERVER="CT8"; else SERVER=$(echo "$HOSTNAME" | cut -d '.' -f 1); fi; echo "$SERVER"; }
 NAME="$ISP-$(get_name)"
@@ -1052,50 +1052,272 @@ Singbox_LINK="https://${USERNAME}.serv00.net/${USERNAME}_singbox.txt"
 cat > list.txt <<EOF
 =================================================================================================
 
-一、Vless-reality分享链接如下：
+one、Vless-realityShare the link as follows：
 $vl_link
 
-注意：如果之前输入的reality域名为CF域名，将激活以下功能：
-可应用在 https://github.com/yonggekkk/Cloudflare_vless_trojan 项目中创建CF vless/trojan 节点
-1、Proxyip(带端口)信息如下：
-方式一全局应用：设置变量名：proxyip    设置变量值：$IP:$vless_port  
-方式二单节点应用：path路径改为：/pyip=$IP:$vless_port
-CF节点的TLS可开可关
-CF节点落地到CF网站的地区为：$IP所在地区
+Notice：If you entered beforerealityDomain nameCFdomain name，Will activate the following functions：
+Can be applied https://github.com/yonggekkk/Cloudflare_vless_trojan Created in the projectCF vless/trojan node
+1、Proxyip(Band)The information is as follows：
+Method for a whole situation：Set variable name：proxyip    Set variable value：$IP:$vless_port  
+Method 2 single node application：pathChange to：/pyip=$IP:$vless_port
+CFNodeTLSKaifang
+CFNode landingCFThe area of ​​the website is：$IPArea
 
-2、非标端口反代IP信息如下：
-客户端优选IP地址为：$IP，端口：$vless_port
-CF节点的TLS必须开启
-CF节点落地到非CF网站的地区为：$IP所在地区
+2、Non -standard port anti -inverterIPThe information is as follows：
+Client preferablyIPAddress：$IP，port：$vless_port
+CFNodeTLSMust open
+CFNodes landCFThe area of ​​the website is：$IPArea
 
-注：如果serv00的IP被墙，proxyip依旧有效，但用于客户端地址与端口的非标端口反代IP将不可用
-注：可能有大佬会扫Serv00的反代IP作为其共享IP库或者出售，请慎重将reality域名设置为CF域名
+Note：ifserv00ofIPWall，proxyipStill effective，但用于客户端地址与端口of非标端口反代IPUnavailable
+Note：Maybe a big man will sweepServ00ReverseIPAs a sharingIPLibrary or sale，Please be carefulrealityDomain name setCFdomain name
 -------------------------------------------------------------------------------------------------
 
 
-二、Vmess-ws分享链接三形态如下：
+two、Vmess-wsShare the link three forms as follows：
 
-1、Vmess-ws主节点分享链接如下：
-(该节点默认不支持CDN，如果设置为CDN回源(需域名)：客户端地址可自行修改优选IP/域名，7个80系端口随便换，被墙依旧能用！)
+1、Vmess-wsMaster node sharing links as follows：
+(This node does not support the defaultCDN，If set toCDNReturn source(Domain name)：The client address can be modified and preferred by itselfIP/domain name，7indivual80Change the port port casually，Can be used by the wall！)
 $vmws_link
 
-Argo域名：${argodomain}
-如果上面Argo临时域名未生成，以下 2 与 3 的Argo节点将不可用 (打开Argo固定/临时域名网页，显示HTTP ERROR 404说明正常可用)
+Argodomain name：${argodomain}
+IfArgoTemporary domain names are not generated，the following 2 and 3 ofArgoNodes will not be available (OpenArgofixed/Temporary Domain Home Page，showHTTP ERROR 404Explanation of normal available)
 
-2、Vmess-ws-tls_Argo分享链接如下： 
-(该节点为CDN优选IP节点，客户端地址可自行修改优选IP/域名，6个443系端口随便换，被墙依旧能用！)
+2、Vmess-ws-tls_ArgoShare the link as follows： 
+(The node isCDNPreferredIPnode，客户端地址可自行修改PreferredIP/domain name，6indivual443Change the port port casually，Can be used by the wall！)
 $vmatls_link
 
-3、Vmess-ws_Argo分享链接如下：
-(该节点为CDN优选IP节点，客户端地址可自行修改优选IP/域名，7个80系端口随便换，被墙依旧能用！)
+3、Vmess-ws_ArgoShare the link as follows：
+(The node isCDNPreferredIPnode，客户端地址可自行修改PreferredIP/domain name，7indivual80Change the port port casually，Can be used by the wall！)
 $vma_link
 -------------------------------------------------------------------------------------------------
 
 
-三、HY2分享链接如下：
+three、HY2Share the link as follows：
 $hy2_link
 -------------------------------------------------------------------------------------------------
 
 
-四、以上五个节点的聚合通用订阅分享链接如下：
-$V2
+Four、The convergence of the above five nodes sharing links are as follows：
+$V2rayN_LINK
+
+The above five nodes aggregate universal sharing code：
+$baseurl
+-------------------------------------------------------------------------------------------------
+
+
+five、CheckSing-boxandClash-metaSubscribe to configuration file，Please enter the main menu and select4
+
+Clash-metaSubscribe to share link：
+$Clashmeta_LINK
+
+Sing-boxSubscribe to share link：
+$Singbox_LINK
+-------------------------------------------------------------------------------------------------
+
+=================================================================================================
+
+EOF
+cat list.txt
+sleep 2
+rm -rf sb.log core tunnel.yml tunnel.json fake_useragent_0.2.0.json
+}
+
+showlist(){
+if [[ -e $WORKDIR/list.txt ]]; then
+green "View node andproxyip/Non -standard port anti -inverteripinformation"
+cat $WORKDIR/list.txt
+else
+red "Not installedsing-box" && exit
+fi
+}
+
+showsbclash(){
+if [[ -e $WORKDIR/sing_box.json ]]; then
+green "Sing_boxThe configuration file is as follows，Can be uploaded to the subscribing client for use："
+yellow "inArgoNodeCDNPreferredIPnode，server地址可自行修改PreferredIP/domain name，Can be used by the wall！"
+sleep 2
+cat $WORKDIR/sing_box.json 
+echo
+echo
+green "Clash_metaThe configuration file is as follows，Can be uploaded to the subscribing client for use："
+yellow "inArgoNodeCDNPreferredIPnode，server地址可自行修改PreferredIP/domain name，Can be used by the wall！"
+sleep 2
+cat $WORKDIR/clash_meta.yaml
+echo
+else
+red "Not installedsing-box" && exit
+fi
+}
+
+servkeep() {
+#green "Start installationCronProcess guarantee"
+curl -sSL https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/serv00keep.sh -o serv00keep.sh && chmod +x serv00keep.sh
+sed -i '' -e "14s|''|'$UUID'|" serv00keep.sh
+sed -i '' -e "17s|''|'$vless_port'|" serv00keep.sh
+sed -i '' -e "18s|''|'$vmess_port'|" serv00keep.sh
+sed -i '' -e "19s|''|'$hy2_port'|" serv00keep.sh
+sed -i '' -e "20s|''|'$IP'|" serv00keep.sh
+sed -i '' -e "21s|''|'$reym'|" serv00keep.sh
+if [ ! -f "$WORKDIR/boot.log" ]; then
+sed -i '' -e "15s|''|'${ARGO_DOMAIN}'|" serv00keep.sh
+sed -i '' -e "16s|''|'${ARGO_AUTH}'|" serv00keep.sh
+fi
+#if ! crontab -l 2>/dev/null | grep -q 'serv00keep'; then
+#if [ -f "$WORKDIR/boot.log" ] || grep -q "trycloudflare.com" "$WORKDIR/boot.log" 2>/dev/null; then
+#check_process="! ps aux | grep '[c]onfig' > /dev/null || ! ps aux | grep [l]ocalhost > /dev/null"
+#else
+#check_process="! ps aux | grep '[c]onfig' > /dev/null || ! ps aux | grep [t]oken > /dev/null"
+#fi
+#(crontab -l 2>/dev/null; echo "*/10 * * * * if $check_process; then /bin/bash serv00keep.sh; fi") | crontab -
+#fi
+#green "Installation，Default10Execute once in minutes，run crontab -e You can modify your own reserved execution interval" && sleep 2
+#echo
+green "Start installing the webpage process to keep"
+keep_path="$HOME/domains/${USERNAME}.${USERNAME}.serv00.net/public_nodejs"
+[ -d "$keep_path" ] || mkdir -p "$keep_path"
+curl -sL https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/app.js -o "$keep_path"/app.js
+sed -i '' "28s/name/$USERNAME/g" "$keep_path"/app.js
+devil www del ${USERNAME}.${USERNAME}.serv00.net > /dev/null 2>&1
+devil www add ${USERNAME}.serv00.net php > /dev/null 2>&1
+devil www add ${USERNAME}.${USERNAME}.serv00.net nodejs /usr/local/bin/node18 > /dev/null 2>&1
+ln -fs /usr/local/bin/node18 ~/bin/node > /dev/null 2>&1
+ln -fs /usr/local/bin/npm18 ~/bin/npm > /dev/null 2>&1
+mkdir -p ~/.npm-global
+npm config set prefix '~/.npm-global'
+echo 'export PATH=~/.npm-global/bin:~/bin:$PATH' >> $HOME/.bash_profile && source $HOME/.bash_profile
+rm -rf $HOME/.npmrc > /dev/null 2>&1
+cd "$keep_path"
+npm install basic-auth express dotenv axios --silent > /dev/null 2>&1
+rm $HOME/domains/${USERNAME}.${USERNAME}.serv00.net/public_nodejs/public/index.html > /dev/null 2>&1
+devil www restart ${USERNAME}.${USERNAME}.serv00.net
+rm -rf $HOME/domains/${USERNAME}.${USERNAME}.serv00.net/logs/*
+green "Installation，Keep the webpage：http://${USERNAME}.${USERNAME}.serv00.net/up ，Open，You can default3Auto -keep in minutes" && sleep 2
+}
+
+okip(){
+    IP_LIST=($(devil vhost list | awk '/^[0-9]+/ {print $1}'))
+    API_URL="https://status.eooce.com/api"
+    IP=""
+    THIRD_IP=${IP_LIST[2]}
+    RESPONSE=$(curl -s --max-time 2 "${API_URL}/${THIRD_IP}")
+    if [[ $(echo "$RESPONSE" | jq -r '.status') == "Available" ]]; then
+        IP=$THIRD_IP
+    else
+        FIRST_IP=${IP_LIST[0]}
+        RESPONSE=$(curl -s --max-time 2 "${API_URL}/${FIRST_IP}")
+        
+        if [[ $(echo "$RESPONSE" | jq -r '.status') == "Available" ]]; then
+            IP=$FIRST_IP
+        else
+            IP=${IP_LIST[1]}
+        fi
+    fi
+    echo "$IP"
+    }
+
+#Main menu
+menu() {
+   clear
+   echo "============================================================"
+   purple "ModifyServ00|ct8Old kingsing-boxInstallation script"
+   purple "Reprinted, please come from Pharaoh，Do not abuse"
+   green "Cricket brotherGithubproject  ：github.com/yonggekkk"
+   green "Cricket brotherBloggerblog ：ygkkk.blogspot.com"
+   green "Cricket brotherYouTubeChannel ：www.youtube.com/@ygkkk"
+   green "One -click three protocol coexist：vless-reality、Vmess-ws(Argo)、hysteria2"
+   green "Current script version：V25.1.27  Shortcut：bash serv00.sh"
+   echo   "============================================================"
+   green  "1. Installsing-box"
+   echo   "------------------------------------------------------------"
+   red    "2. uninstallsing-box"
+   echo   "------------------------------------------------------------"
+   green  "3. Check：Each node sharing/sing-boxandclash-metaSubscription link/CFnodeproxyip"
+   echo   "------------------------------------------------------------"
+   green  "4. Check：sing-boxandclash-metaConfiguration file"
+   echo   "------------------------------------------------------------"
+   yellow "5. Reset and clean up all service processes(System initialization)"
+   echo   "------------------------------------------------------------"
+   red    "0. Exit script"
+   echo   "============================================================"
+nb=$(echo "$HOSTNAME" | cut -d '.' -f 1 | tr -d 's')
+ym=("$HOSTNAME" "cache$nb.serv00.com" "web$nb.serv00.com")
+rm -rf $WORKDIR/ip.txt $WORKDIR/hy2ip.txt
+for ip in "${ym[@]}"; do
+dig @8.8.8.8 +time=2 +short $ip >> $WORKDIR/hy2ip.txt
+sleep 1  
+done
+for ym in "${ym[@]}"; do
+response=$(curl -sL --connect-timeout 5 --max-time 7 "https://ss.botai.us.kg/api/getip?host=$ym")
+if [[ -z "$response" || "$response" == *unknown* ]]; then
+for ip in "${ym[@]}"; do
+dig @8.8.8.8 +time=2 +short $ip >> $WORKDIR/ip.txt
+sleep 1  
+done
+else
+echo "$response" | while IFS='|' read -r ip status; do
+if [[ $status == "Accessible" ]]; then
+echo "$ip: Available"  >> $WORKDIR/ip.txt
+else
+echo "$ip: Wall (ArgoandCDNReturn node、proxyipStill effective)"  >> $WORKDIR/ip.txt
+fi	
+done
+fi
+done
+snb=$(hostname | awk -F '.' '{print $1}')
+green "Serv00Server name：$snb"
+green "Current optionalIPas follows："
+cat $WORKDIR/ip.txt
+echo
+if [[ -e $WORKDIR/list.txt ]]; then
+green "Installedsing-box"
+ps aux | grep '[c]onfig' > /dev/null && green "The main process is running normally" || yellow "Main process startup…………1After minutes, enter the script again to view"
+if [ -f "$WORKDIR/boot.log" ] && grep -q "trycloudflare.com" "$WORKDIR/boot.log" 2>/dev/null && ps aux | grep '[t]unnel --url' > /dev/null; then
+argosl=$(cat "$WORKDIR/boot.log" 2>/dev/null | grep -a trycloudflare.com | awk 'NR==2{print}' | awk -F// '{print $2}' | awk '{print $1}')
+checkhttp=$(curl -o /dev/null -s -w "%{http_code}\n" "https://$argosl")
+[ "$checkhttp" -eq 404 ] && check="Valid domain name" || check="The domain name may be invalid"
+green "currentArgoTemporary domain name：$argosl  $check"
+fi
+if [ -f "$WORKDIR/boot.log" ] && ! ps aux | grep '[t]unnel --url' > /dev/null; then
+yellow "currentArgoTemporary domain names do not exist for the time being，The background will continue to generate effective temporary domain names，You can enter the script again later to view"
+fi
+if ps aux | grep '[t]unnel --no' > /dev/null; then
+argogd=$(cat $WORKDIR/gdym.log 2>/dev/null)
+checkhttp=$(curl --max-time 2 -o /dev/null -s -w "%{http_code}\n" "https://$argogd")
+[ "$checkhttp" -eq 404 ] && check="Valid domain name" || check="The domain name may fail"
+green "currentArgoFixed domain name：$argogd $check"
+fi
+if [ ! -f "$WORKDIR/boot.log" ] && ! ps aux | grep '[t]unnel --no' > /dev/null; then
+yellow "currentArgoFixed domain name：$(cat $WORKDIR/gdym.log 2>/dev/null)，Enable failure，Please check whether the related parameters are input errors"
+fi
+green "Keep the webpage：http://${USERNAME}.${USERNAME}.serv00.net/up ，Open，You can default3Auto -keep in minutes"
+#if ! crontab -l 2>/dev/null | grep -q 'serv00keep'; then
+#if [ -f "$WORKDIR/boot.log" ] || grep -q "trycloudflare.com" "$WORKDIR/boot.log" 2>/dev/null; then
+#check_process="! ps aux | grep '[c]onfig' > /dev/null || ! ps aux | grep [l]ocalhost > /dev/null"
+#else
+#check_process="! ps aux | grep '[c]onfig' > /dev/null || ! ps aux | grep [t]oken > /dev/null"
+#fi
+#(crontab -l 2>/dev/null; echo "*/2 * * * * if $check_process; then /bin/bash serv00keep.sh; fi") | crontab -
+#purple "DiscoverServ00Start a big move，CronRepair was reset and cleared"
+#purple "at presentCronRepair has been repaired。Open http://${USERNAME}.${USERNAME}.serv00.net/up You can also keep in real time"
+#purple "Primary process andArgoProcess startup…………1After minutes, enter the script again to view"
+#else
+#green "CronRepair and run normally。Open http://${USERNAME}.${USERNAME}.serv00.net/up You can also keep in real time"
+#fi
+else
+red "Not installedsing-box，Choose 1 Installation" 
+fi
+curl -sSL https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/serv00.sh -o serv00.sh && chmod +x serv00.sh
+   echo   "========================================================="
+   reading "Please enter the selection【0-5】: " choice
+   echo ""
+    case "${choice}" in
+        1) install_singbox ;;
+        2) uninstall_singbox ;; 
+        3) showlist ;;
+	4) showsbclash ;;
+        5) kill_all_tasks ;;
+	0) exit 0 ;;
+        *) red "Invalid option，Please enter 0 arrive 5" ;;
+    esac
+}
+menu
