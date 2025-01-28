@@ -28,4 +28,4 @@ echo "$mtproto_url"
 
 # اجرای دستور mtg برای راه‌اندازی پروکسی با استفاده از کلید مخفی و پورت وارد شده
 echo "wait"
-nohup ./mtg simple-run -n 1.1.1.1 -t 30s -a 1MB 0.0.0.0:${port} ${secret} -c 8192 
+nohup ./mtg simple-run -n 1.1.1.1 -t 30s -a 1MB 0.0.0.0:${port} ${secret} -c 8192 > mtg.log 2>&1 &
