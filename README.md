@@ -1,6 +1,9 @@
 اسکریپت ترجمه شده نصب سینگ باکس بر روی هاست serv00
+
 Hysteria2, TUIC5, VLESS-Reality, VMESS-WS/ARGO
+
 automatic keep alive
+
 # لینک اصلی پروژه:
 https://github.com/yonggekkk/sing-box-yg
 
