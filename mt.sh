@@ -18,11 +18,6 @@ read -p "لطفا پورت را وارد کنید: " port
 
 # تولید کلید مخفی با استفاده از نام هاست وارد شده
 secret=$(./mtg generate-secret --hex $host)
-
-# اجرای دستور mtg برای راه‌اندازی پروکسی با استفاده از کلید مخفی و پورت وارد شده
-echo "در حال راه‌اندازی پروکسی..."
-nohup ./mtg simple-run -n 1.1.1.1 -t 30s -a 1MB 0.0.0.0:${port} ${secret} -c 8192 
-
 # ساخت لینک تلگرام با استفاده از هاست و پورت وارد شده و کلید مخفی تولید شده
 mtproto_url="https://t.me/proxy?server=${host}&port=${port}&secret=${secret}"
 
@@ -30,3 +25,7 @@ mtproto_url="https://t.me/proxy?server=${host}&port=${port}&secret=${secret}"
 echo "پروکسی با موفقیت راه‌اندازی شد!"
 echo "برای دسترسی به پروکسی، از لینک زیر استفاده کنید:"
 echo "$mtproto_url"
+
+# اجرای دستور mtg برای راه‌اندازی پروکسی با استفاده از کلید مخفی و پورت وارد شده
+echo "wait"
+nohup ./mtg simple-run -n 1.1.1.1 -t 30s -a 1MB 0.0.0.0:${port} ${secret} -c 8192 
