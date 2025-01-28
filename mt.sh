@@ -2,7 +2,6 @@
 
 # مشخص کردن URL فایل برای دانلود
 FILE_URL="https://github.com/9seconds/mtg/releases/download/v2.1.7/mtg-2.1.7-freebsd-amd64.tar.gz"
-DIR_NAME="mtg"
 
 # دانلود فایل و استخراج آن
 echo "در حال دانلود فایل mtg..."
@@ -10,7 +9,7 @@ wget -q $FILE_URL -O mtg.tar.gz
 
 echo "در حال استخراج فایل..."
 tar -xzf mtg.tar.gz
-cd $DIR_NAME
+cd mtg-2.1.7-freebsd-amd64
 
 # درخواست از کاربر برای وارد کردن نام هاست و پورت
 read -p "لطفا نام هاست را وارد کنید: " host
