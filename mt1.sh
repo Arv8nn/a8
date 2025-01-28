@@ -5,7 +5,7 @@ INSTALL_DIR="$HOME/tg-proxy"
 BIN_PATH="$INSTALL_DIR/mtg"
 CONFIG_FILE="$INSTALL_DIR/config.cfg"
 VERSION="v2.1.7"
-BIN_URL="https://github.com/9seconds/mtg/releases/download/${VERSION}/mtg-${VERSION}-freebsd-amd64.tar.gz"
+BIN_URL="https://github.com/9seconds/mtg/releases/download/v2.1.7/mtg-2.1.7-freebsd-amd64.tar.gz"
 
 # Colors
 RED='\033[0;31m'
