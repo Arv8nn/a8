@@ -17,7 +17,7 @@ read -p "لطفا نام هاست را وارد کنید: " host
 read -p "لطفا پورت را وارد کنید: " port
 
 # تولید کلید مخفی با استفاده از نام هاست وارد شده
-secret=$(./mtg generate-secret --hex s16.serv00.com)
+secret=$(./mtg generate-secret --hex google.com)
 
 # اجرای دستور mtg برای راه‌اندازی پروکسی با استفاده از کلید مخفی و پورت وارد شده
 echo "در حال راه‌اندازی پروکسی..."
