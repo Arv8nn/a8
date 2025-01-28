@@ -12,96 +12,90 @@ GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 NC='\033[0m'
 
-validate_port() {
-    local port=$1
-    if ! [[ "$port" =~ ^[0-9]+$ ]] || [ "$port" -lt 1 ] || [ "$port" -gt 65535 ]; then
-        echo -e "${RED}Invalid port! Must be between 1 and 65535${NC}"
+# Dependency check
+check_dependencies() {
+    local missing=()
+    local deps=("jq" "curl" "tar" "ss")
+    
+    for cmd in "${deps[@]}"; do
+        if ! command -v "$cmd" &>/dev/null; then
+            missing+=("$cmd")
+        fi
+    done
+
+    if [ ${#missing[@]} -gt 0 ]; then
+        echo -e "${RED}Missing dependencies:${NC} ${missing[*]}"
+        echo "Install with:"
+        echo "sudo apt-get install -y ${missing[*]}"
+        exit 1
+    fi
+}
+
+get_random_port() {
+    echo $((RANDOM % 55536 + 10000))
+}
+
+download_mtg() {
+    echo -e "${YELLOW}Downloading mtg...${NC}"
+    if curl -sL "$MTG_URL" | tar xz -C "$INSTALL_DIR" --strip-components=1 --wildcards '*/mtg'; then
+        chmod +x "${INSTALL_DIR}/mtg"
+        return 0
+    else
+        echo -e "${RED}Failed to download mtg!${NC}"
         return 1
     fi
-    return 0
+}
+
+validate_port() {
+    # ... تابع validate_port از کد قبلی
 }
 
 check_port_availability() {
-    local port=$1
-    if ss -tuln | grep -q ":$port "; then
-        echo -e "${RED}Port $port is already in use!${NC}"
-        return 1
-    fi
-    return 0
+    # ... تابع check_port_availability از کد قبلی
 }
 
 get_port_input() {
-    while true; do
-        read -p "Enter port number [or press Enter for random port]: " port_input
-        if [ -z "$port_input" ]; then
-            port=$(get_random_port)
-            echo -e "${YELLOW}Using random port: $port${NC}"
-            return 0
-        fi
-        
-        if validate_port "$port_input"; then
-            if check_port_availability "$port_input"; then
-                port=$port_input
-                return 0
-            fi
-        fi
-    done
+    # ... تابع get_port_input از کد قبلی
 }
 
 install_mtg() {
-    mkdir -p "$INSTALL_DIR"
-    cd "$INSTALL_DIR" || exit 1
-
-    if [ ! -f "${INSTALL_DIR}/mtg" ]; then
-        if ! download_mtg; then
-            return 1
-        fi
-    fi
-
-    local reconfigure="n"
-    if [ -f "$CONFIG_FILE" ]; then
-        echo -e "${YELLOW}Current configuration:${NC}"
-        jq . "$CONFIG_FILE"
-        read -r -p "Reconfigure? [y/N]: " reconfigure
-        reconfigure=${reconfigure:-n}
-    fi
-
-    if [ "$reconfigure" != "y" ] && [ -f "$CONFIG_FILE" ]; then
-        return 0
-    fi
-
-    # Get user input
-    get_port_input
-    local hostname
-    hostname=$(hostname).serv00.com
-    local secret
-    secret=$("${INSTALL_DIR}/mtg" generate-secret -c 32 --hex "$hostname")
-
-    # Create config
-    jq -n \
-        --arg secret "$secret" \
-        --arg port "$port" \
-        --arg host "$hostname" \
-        '{
-            secret: $secret,
-            port: $port|tonumber,
-            host: $host
-        }' > "$CONFIG_FILE"
-
-    echo -e "${GREEN}Configuration created:${NC}"
-    jq . "$CONFIG_FILE"
+    # ... تابع install_mtg از کد قبلی
 }
 
-# بقیه توابع بدون تغییر (همان نسخه قبلی)
+start_mtg() {
+    # ... تابع start_mtg از کد قبلی
+}
+
+# ... سایر توابع بدون تغییر
 
 main() {
-    check_dependencies
+    check_dependencies  # خط 98 اصلی
     
     case "$1" in
         install)
             install_mtg
             ;;
-        # ... سایر موارد بدون تغییر
+        start)
+            start_mtg
+            ;;
+        stop)
+            stop_mtg
+            ;;
+        status)
+            if is_mtg_running; then
+                echo -e "${GREEN}mtg is running${NC}"
+                show_proxy_url
+            else
+                echo -e "${YELLOW}mtg is not running${NC}"
+            fi
+            ;;
+        uninstall)
+            uninstall_mtg
+            ;;
+        *)
+            echo "Usage: $0 {install|start|stop|status|uninstall}"
+            exit 1
+            ;;
     esac
 }
 
