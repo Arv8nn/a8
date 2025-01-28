@@ -4,9 +4,9 @@
 checkDownload() {
   # می‌توانید این تابع را برای بررسی دانلود صحیح mtg تنظیم کنید.
   # فرض می‌کنیم که از دستور curl یا wget برای دانلود استفاده می‌شود.
-  curl -LO https://github.com/9seconds/mtg/releases/download/v1.9.0/mtg-linux-amd64-v1.9.0.tar.gz
+  curl -LO https://github.com/9seconds/mtg/releases/download/v2.1.7/mtg-2.1.7-freebsd-amd64.tar.gz
   if [ $? -eq 0 ]; then
-    tar -xvzf mtg-linux-amd64-v1.9.0.tar.gz
+    tar -xvzf mtg-2.1.7-freebsd-amd64.tar.gz
     return 0
   else
     return 1
