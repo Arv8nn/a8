@@ -31,7 +31,7 @@ echo "در حال راه‌اندازی پروکسی..."
 nohup ./mtg simple-run -n 1.1.1.1 -t 30s -a 1MB 0.0.0.0:${port} ${secret} -c 8192 &
 
 # ساخت لینک تلگرام با استفاده از هاست و پورت وارد شده و کلید مخفی تولید شده
-mtproto_url="https://t.me/proxy?server=${host}.serv00.com&port=${port}&secret=${secret}"
+mtproto_url="https://t.me/proxy?server=${host}&port=${port}&secret=${secret}"
 
 # نمایش لینک تلگرام به کاربر
 echo "پروکسی با موفقیت راه‌اندازی شد!"
