@@ -2,6 +2,7 @@
 
 # مشخص کردن URL فایل برای دانلود
 FILE_URL="https://github.com/9seconds/mtg/releases/download/v2.1.7/mtg-2.1.7-freebsd-amd64.tar.gz"
+DIR_NAME="mtg-2.1.7-freebsd-amd64"
 
 # دانلود فایل و استخراج آن
 echo "در حال دانلود فایل mtg..."
@@ -17,14 +18,6 @@ read -p "لطفا پورت را وارد کنید: " port
 
 # تولید کلید مخفی با استفاده از نام هاست وارد شده
 secret=$(./mtg generate-secret --hex "$host")
-
-# بررسی اینکه آیا کلید مخفی به درستی تولید شده است
-if [ -z "$secret" ]; then
-    echo "خطا: کلید مخفی تولید نشد!"
-    exit 1
-else
-    echo "کلید مخفی تولید شده: $secret"
-fi
 
 # اجرای دستور mtg برای راه‌اندازی پروکسی با استفاده از کلید مخفی و پورت وارد شده
 echo "در حال راه‌اندازی پروکسی..."
