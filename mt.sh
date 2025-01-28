@@ -1,102 +1,93 @@
 #!/bin/bash
 
-# Configuration
-INSTALL_DIR="${HOME}/serv00-mtg"
-CONFIG_FILE="${INSTALL_DIR}/config.json"
-MTG_VERSION="v2.1.7"
-MTG_URL="https://github.com/9seconds/mtg/releases/download/${MTG_VERSION}/mtg-${MTG_VERSION}-linux-amd64-static.tar.gz"
-
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-NC='\033[0m'
-
-# Dependency check
-check_dependencies() {
-    local missing=()
-    local deps=("jq" "curl" "tar" "ss")
-    
-    for cmd in "${deps[@]}"; do
-        if ! command -v "$cmd" &>/dev/null; then
-            missing+=("$cmd")
-        fi
-    done
-
-    if [ ${#missing[@]} -gt 0 ]; then
-        echo -e "${RED}Missing dependencies:${NC} ${missing[*]}"
-        echo "Install with:"
-        echo "sudo apt-get install -y ${missing[*]}"
-        exit 1
-    fi
+# Function to install dependencies (if necessary, in this case, none for compiled)
+install_dependencies() {
+    echo "No dependencies need to be installed for the compiled binary."
+    echo "Proceeding with the setup..."
 }
 
-get_random_port() {
-    echo $((RANDOM % 55536 + 10000))
+# Function to generate a random secret key
+generate_secret_key() {
+    local secret_key=$(openssl rand -base64 32)
+    echo "$secret_key"
 }
 
-download_mtg() {
-    echo -e "${YELLOW}Downloading mtg...${NC}"
-    if curl -sL "$MTG_URL" | tar xz -C "$INSTALL_DIR" --strip-components=1 --wildcards '*/mtg'; then
-        chmod +x "${INSTALL_DIR}/mtg"
-        return 0
+# Function to create proxy configuration
+create_config() {
+    echo "Enter the hostname (e.g., proxy.example.com):"
+    read hostname
+    echo "Enter the port number (e.g., 1080):"
+    read port
+    secret_key=$(generate_secret_key)
+
+    # Create proxy configuration
+    echo "Creating proxy configuration..."
+    mkdir -p /etc/telegram-proxy
+    cat <<EOF > /etc/telegram-proxy/config.json
+{
+    "hostname": "$hostname",
+    "port": "$port",
+    "secret_key": "$secret_key"
+}
+EOF
+    echo "Configuration file created successfully."
+
+    # Display connection link
+    echo "Proxy setup complete. Use the following connection link:"
+    echo "tg://proxy?hostname=$hostname&port=$port&secret_key=$secret_key"
+}
+
+# Function to run the proxy (compiled binary should be here)
+run_proxy() {
+    echo "Starting Telegram Proxy..."
+    # Assuming the compiled binary is named 'telegram-proxy' and exists in the current directory
+    if [ -f "./telegram-proxy" ]; then
+        ./telegram-proxy --config /etc/telegram-proxy/config.json
     else
-        echo -e "${RED}Failed to download mtg!${NC}"
-        return 1
+        echo "Error: telegram-proxy binary not found. Please ensure the compiled binary is in the current directory."
     fi
 }
 
-validate_port() {
-    # ... تابع validate_port از کد قبلی
+# Function to uninstall the proxy
+uninstall_proxy() {
+    echo "Uninstalling Telegram Proxy..."
+    rm -rf /etc/telegram-proxy
+    echo "Proxy uninstalled successfully."
 }
 
-check_port_availability() {
-    # ... تابع check_port_availability از کد قبلی
-}
+# Main menu function
+main_menu() {
+    echo "Telegram Proxy Setup"
+    echo "1. Install Proxy"
+    echo "2. Run Proxy"
+    echo "3. Uninstall Proxy"
+    echo "4. Exit"
+    echo -n "Please select an option: "
+    read option
 
-get_port_input() {
-    # ... تابع get_port_input از کد قبلی
-}
-
-install_mtg() {
-    # ... تابع install_mtg از کد قبلی
-}
-
-start_mtg() {
-    # ... تابع start_mtg از کد قبلی
-}
-
-# ... سایر توابع بدون تغییر
-
-main() {
-    check_dependencies  # خط 98 اصلی
-    
-    case "$1" in
-        install)
-            install_mtg
+    case $option in
+        1)
+            install_dependencies
+            create_config
             ;;
-        start)
-            start_mtg
+        2)
+            run_proxy
             ;;
-        stop)
-            stop_mtg
+        3)
+            uninstall_proxy
             ;;
-        status)
-            if is_mtg_running; then
-                echo -e "${GREEN}mtg is running${NC}"
-                show_proxy_url
-            else
-                echo -e "${YELLOW}mtg is not running${NC}"
-            fi
-            ;;
-        uninstall)
-            uninstall_mtg
+        4)
+            echo "Exiting..."
+            exit 0
             ;;
         *)
-            echo "Usage: $0 {install|start|stop|status|uninstall}"
-            exit 1
+            echo "Invalid option. Please try again."
             ;;
     esac
 }
 
-main "$@"
+# Run the menu loop
+while true; do
+    main_menu
+done
+
