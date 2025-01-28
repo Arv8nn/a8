@@ -10,7 +10,7 @@ echo "==================================================================="
 select option in "install script(translate from yonggekkk)" "serv00 MTproxy" "exit"
 do
     case $option in
-	"install script")
+	"install script(translate from yonggekkk)")
 	echo "you selected install script(translate from yonggekkk)"
 	bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/files/serv00.sh)
 	;;
