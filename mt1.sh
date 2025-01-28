@@ -32,10 +32,10 @@ validate_port() {
     [[ $port =~ ^[0-9]+$ ]] && [ "$port" -ge 1 -a "$port" -le 65535 ]
 }
 
-# Check port availability
+# Check port availability using netstat (alternative to ss)
 port_available() {
     local port=$1
-    ! ss -tuln | grep -q ":$port\b"
+    ! netstat -tuln | grep -q ":$port\b"
 }
 
 # Generate secret key
@@ -47,13 +47,13 @@ generate_secret() {
 download_binary() {
     echo -e "${YELLOW}Downloading mtg binary...${NC}"
     temp_file=$(mktemp)
-    
+
     if ! curl -sL -o "$temp_file" "$BIN_URL"; then
         echo -e "${RED}Failed to download file!${NC}"
         rm -f "$temp_file"
         return 1
     fi
-    
+
     if file "$temp_file" | grep -q "gzip compressed data"; then
         tar xzf "$temp_file" -C "$INSTALL_DIR" --strip-components=1
         rm -f "$temp_file"
@@ -70,12 +70,24 @@ download_binary() {
     fi
 }
 
-# ... rest of the script remains the same as previous version ...
+# Show connection info (basic info to display after installation)
+show_connection_info() {
+    # Generate proxy link for Telegram (MTProto proxy)
+    proxy_link="tg://proxy?server=$hostname&port=$port&secret=$secret"
+    
+    echo -e "\n${GREEN}Your Telegram proxy is now set up with the following configuration:${NC}"
+    echo "Host: $hostname"
+    echo "Port: $port"
+    echo "Secret: $secret"
+    echo -e "\n${GREEN}Connection Link for Telegram:${NC} $proxy_link"
+}
 
+# Install Proxy
 install_proxy() {
     check_root
     mkdir -p "$INSTALL_DIR"
-    
+
+    # Download the mtg binary
     if ! download_binary; then
         exit 1
     fi
@@ -90,7 +102,7 @@ install_proxy() {
         default_port=$(random_port)
         read -p "Enter port [default: $default_port]: " port
         port=${port:-$default_port}
-        
+
         if validate_port "$port"; then
             if port_available "$port"; then
                 break
@@ -98,11 +110,11 @@ install_proxy() {
                 echo -e "${RED}Port $port is already in use!${NC}"
             fi
         else
-            echo -e "${RED}Invalid port number!${NC}"
+            echo -e "${RED}Invalid port number! Please enter a number between 1 and 65535.${NC}"
         fi
     done
 
-    # Generate secret
+    # Generate secret key
     secret=$(generate_secret)
 
     # Save config
@@ -114,4 +126,5 @@ install_proxy() {
     show_connection_info
 }
 
-# ... rest of the functions remain unchanged ...
+# Start installation
+install_proxy
