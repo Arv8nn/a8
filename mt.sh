@@ -1,69 +1,32 @@
 #!/bin/bash
 
-# تابعی برای چک کردن دانلود کردن mtg
-checkDownload() {
-  # می‌توانید این تابع را برای بررسی دانلود صحیح mtg تنظیم کنید.
-  # فرض می‌کنیم که از دستور curl یا wget برای دانلود استفاده می‌شود.
-  curl -LO https://github.com/9seconds/mtg/releases/download/v2.1.7/mtg-2.1.7-freebsd-amd64.tar.gz
-  if [ $? -eq 0 ]; then
-    tar -xvzf mtg-2.1.7-freebsd-amd64.tar.gz
-    return 0
-  else
-    return 1
-  fi
-}
+# مشخص کردن URL فایل برای دانلود
+FILE_URL="https://github.com/9seconds/mtg/releases/download/v2.1.7/mtg-2.1.7-freebsd-amd64.tar.gz"
+DIR_NAME="mtg"
 
-# تابع برای نصب mtg و پیکربندی آن
-installMtg() {
-  if [ ! -e "mtg" ]; then
-    echo "mtg not found, downloading..."
-    if ! checkDownload; then
-      echo "Download failed!"
-      return 1
-    fi
-  fi
+# دانلود فایل و استخراج آن
+echo "در حال دانلود فایل mtg..."
+wget -q $FILE_URL -O mtg.tar.gz
 
-  chmod +x ./mtg
+echo "در حال استخراج فایل..."
+tar -xzf mtg.tar.gz
+cd $DIR_NAME
 
-  if [ -e "config.json" ]; then
-    echo "The configuration is as follows:"
-    cat config.json
-    read -p "Do you want to regenerate the configuration? [y/n] [n]:" input
-    input=${input:-n}
-    if [ "$input" == "n" ]; then
-      return 0
-    fi
-  fi
+# درخواست از کاربر برای وارد کردن نام هاست و پورت
+read -p "لطفا نام هاست را وارد کنید: " host
+read -p "لطفا پورت را وارد کنید: " port
 
-  # ایجاد کلید به طور خودکار
-  head=$(hostname | cut -d '.' -f 1)
-  no=${head#s}
-  host="panel${no}.serv00.com"
-  secret=$(./mtg generate-secret --hex $host)
-  
-  # پورت تصادفی برای mtg
-  loadPort
-  randomPort tcp mtg
-  
-  if [[ -n "$port" ]]; then
-    mtpport="$port"
-  fi
+# تولید کلید مخفی
+secret=$(./mtg generate-secret --hex "$host")
 
-  # نوشتن پیکربندی جدید به فایل config.json
-  cat >config.json <<EOF
-  {
-    "secret": "$secret",
-    "port": "$mtpport"
-  }
-EOF
+# اجرای دستور mtg
+echo "در حال راه‌اندازی پروکسی..."
+nohup ./mtg simple-run -n 1.1.1.1 -t 30s -a 1MB 0.0.0.0:${port} ${secret} -c 8192 &
 
-  # نمایش مشخصات پروکسی
-  echo "Configuration complete! Your proxy details are as follows:"
-  echo "Secret Key: $secret"
-  echo "Proxy URL: $host:$mtpport"
-  echo "You can now use the proxy at the URL: mtg://$host:$mtpport"
-}
+# ساخت لینک تلگرام با مقادیر متغیرها
+mtproto_url="https://t.me/proxy?server=${host}.serv00.com&port=${port}&secret=${secret}"
 
-# فراخوانی تابع نصب
-installMtg
-
+# نمایش لینک تلگرام
+echo "پروکسی با موفقیت راه‌اندازی شد!"
+echo "برای دسترسی به پروکسی، از لینک زیر استفاده کنید:"
+echo "$mtproto_url"
