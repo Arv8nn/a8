@@ -1,23 +1,27 @@
 #!/bin/bash
-echo "=================================================================="
-echo "=================================================================="
+echo "==================================================================="
+echo "==================================================================="
 echo "made and translated by ARV8n"
-echo "suorce = yonggekkk , eooce , am-serv00-x-ui , mtg"
+echo "suorce = yonggekkk , eooce , mtg"
 echo "Please select an option:"
 echo "==================================================================="
 echo "==================================================================="
 
-select option in "install script(translate from yonggekkk)" "serv00 MTproxy" "exit"
+select option in "yonggekkk serv00 script" "eooce serv00 script" "serv00 MTproxy" "exit"
 do
     case $option in
-	"install script(translate from yonggekkk)")
-	echo "you selected install script(translate from yonggekkk)"
-	bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/files/serv00.sh)
+	"yonggekkk serv00 script")
+	echo "yonggekkk serv00 script"
+	bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/serv%201/serv00.sh)
 	;;
- 	"serv00 MTproxy")
-  	echo "you selected serv00 MTproxy"
-   	bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/mt.sh)
+ 	"eooce serv00 script")
+  	echo "eooce serv00 script"
+   	bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/serv%202/sb_serv00.sh)
     	;;
+     	"serv00 MTproxy")
+      	echo "serv00 MTproxy"
+       	bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/mt.sh)
+	;;
 	"exit")
 	echo "Exiting the program"
             break
