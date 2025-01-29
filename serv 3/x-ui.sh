@@ -68,27 +68,8 @@ confirm_restart() {
 }
 
 before_show_menu() {
-    echo && echo -n -e "${yellow}Press the car and return to the main menu: ${plain}" && read temp
+    echo && echo -n -e "${yellow}Press the enter and return to the main menu: ${plain}" && read temp
     show_menu
-}
-
-update() {
-    confirm "This function will forcibly reinstall the current latest version，The data will not be lost，Whether to continue?" "n"
-    if [[ $? != 0 ]]; then
-        LOGE "Cancel"
-        if [[ $# == 0 ]]; then
-            before_show_menu
-        fi
-        return 0
-    fi
-    cd ~
-    wget -N --no-check-certificate -O x-ui-install.sh https://raw.githubusercontent.com/amclubs/am-serv00-x-ui/main/install.sh
-    chmod +x x-ui-install.sh
-    ./x-ui-install.sh
-    if [[ $? == 0 ]]; then
-        LOGI "Update，Make a panel automatically "
-        exit 0
-    fi
 }
 
 stop_x-ui() {
