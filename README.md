@@ -19,5 +19,5 @@ https://github.com/eooce/Sing-box
 
 # نصب:
 
-bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/start.sh) #
+bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/start.sh)
 # made by ARV8N
