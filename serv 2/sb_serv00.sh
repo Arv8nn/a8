@@ -57,7 +57,7 @@ if [[ $tcp_ports -ne 1 || $udp_ports -ne 2 ]]; then
                 green "Have been addedTCPport: $tcp_port"
                 break
             else
-                yellow "port $tcp_port Unavailable，Try other ports..."
+                yellow "port $tcp_port Unavailable，Try another port..."
             fi
         done
     fi
@@ -77,11 +77,11 @@ if [[ $tcp_ports -ne 1 || $udp_ports -ne 2 ]]; then
                 fi
                 udp_ports_added=$((udp_ports_added + 1))
             else
-                yellow "port $udp_port Unavailable，Try other ports..."
+                yellow "port $udp_port Unavailable，Try another port..."
             fi
         done
     fi
-    green "The port has been adjusted to complete,Will disconnectsshconnect,Please reconnectshhRe -execute the script"
+    green "The port has been adjusted to complete,Will disconnectsshconnect,Please reconnect shhRe -execute the script"
     devil binexec on >/dev/null 2>&1
     kill -9 $(ps -o ppid= -p $$) >/dev/null 2>&1
 else
@@ -143,7 +143,12 @@ uninstall_singbox() {
         [Yy])
 	    bash -c 'ps aux | grep $(whoami) | grep -v "sshd\|bash\|grep" | awk "{print \$2}" | xargs -r kill -9 >/dev/null 2>&1' >/dev/null 2>&1
        	    rm -rf $WORKDIR && find ${FILE_PATH} -mindepth 1 ! -name 'index.html' -exec rm -rf {} +
-            devil www  keep.${USERNAME}.serv00.net nodejs 2>/dev/null || true
+            devil www del keep.${USERNAME}.serv00.net nodejs 2>/dev/null || true
+            rm -rf ${HOME}/domains/${USERNAME}.serv00.net/public_nodejs 2 >/dev/null || true
+            rm -rf "${HOME}/bin/00" >/dev/null 2>&1
+            [ -d "${HOME}/bin" ] && [ -z "$(ls -A "${HOME}/bin")" ] && rmdir "${HOME}/bin"
+            sed -i '/export PATH="\$HOME\/bin:\$PATH"/d' "${HOME}/.bashrc" >/dev/null 2>&1
+            source "${HOME}/.bashrc"
 	    clear
        	    green "Sing-boxSupreme 1 has been completely uninstalled"
           ;;
@@ -163,7 +168,7 @@ reading "\nAre you sure to continue cleaning up？【y/n】: " choice
 # Generating argo Config
 argo_configure() {
   if [[ -z $ARGO_AUTH || -z $ARGO_DOMAIN ]]; then
-      reading "Do you need to use fixedargotunnel？(Enter directly and the temporary tunnel will be used.)【y/n】: " argo_choice
+      reading "Do you need to use fixedargotunnel？(Press Enter directly to use a temporary tunnel)【y/n】: " argo_choice
       [[ -z $argo_choice ]] && return
       [[ "$argo_choice" != "y" && "$argo_choice" != "Y" && "$argo_choice" != "n" && "$argo_choice" != "N" ]] && { red "Invalid choice，Please enteryorn"; return; }
       if [[ "$argo_choice" == "y" || "$argo_choice" == "Y" ]]; then
@@ -524,7 +529,8 @@ EOF
 cat ${FILE_PATH}/list.txt
 generate_sub_link
 rm -rf boot.log config.json sb.log core tunnel.yml tunnel.json fake_useragent_0.2.0.json
-purple "Running done!"
+quick_command
+green "Running done!\n"
 
 }
 
@@ -615,46 +621,77 @@ EOF
         purple "\naccess https://keep.${USERNAME}.serv00.net/status View process status\n"
         yellow "access https://keep.${USERNAME}.serv00.net/start Set up a preservation procedure\n"
         purple "access https://keep.${USERNAME}.serv00.net/list All process lists\n"
-        purple "access https://keep.${USERNAME}.serv00.net/stop Ending process and guarantee\n\n"
+        purple "access https://keep.${USERNAME}.serv00.net/stop Ending process and guarantee\n"
         green "=========================================================="
         yellow "If you find a drop accesshttps://keep.${USERNAME}.serv00.net/startwake,Or usehttps://console.cron-job.org在线访问网页自动wake\n"
         purple "If necessaryTelegramnotify，Please firstTelegram @Botfather Apply Bot-Token，BandCHAT_IDandBOT_TOKENEnvironment variables\n\n"
-        
+        quick_command
     else
         red "Fully automatic guarantee service installation failed,Please delete all folders and try again\n"
     fi
 }
 
+quick_command() {
+  COMMAND="00"
+  SCRIPT_PATH="$HOME/bin/$COMMAND"
+  mkdir -p "$HOME/bin"
+  echo "#!/bin/bash" > "$SCRIPT_PATH"
+  echo "bash <(curl -Ls https://raw.githubusercontent.com/eooce/sing-box/main/sb_serv00.sh)" >> "$SCRIPT_PATH"
+  chmod +x "$SCRIPT_PATH"
+  if [[ ":$PATH:" != *":$HOME/bin:"* ]]; then
+      echo "export PATH=\"\$HOME/bin:\$PATH\"" >> "$HOME/.bashrc"
+      source "$HOME/.bashrc"
+  fi
+}
+
+get_url_info() {
+  if devil www list 2>&1 | grep -q "keep.$USERNAME.serv00.net"; then
+    purple "\n-------------------Real related links------------------\n"
+    green "=================================================\n"
+    purple "https://keep.${USERNAME}.serv00.net/status View process status\n"
+    yellow "https://keep.${USERNAME}.serv00.net/start Set up a preservation procedure\n"
+    purple "https://keep.${USERNAME}.serv00.net/list All process lists\n"
+    purple "https://keep.${USERNAME}.serv00.net/stop Ending process\n"
+    green "================================================="
+  else 
+    red "Have not installed automatic guarantee service\n" && sleep 2 && menu
+  fi
+}
+
 menu() {
-   clear
-   echo ""
-   purple "=== Serv00|ct8Old kingsing-boxOne -key, four -in -one installation script ===\n"
-   echo -e "${green}Script address：${re}${yellow}https://github.com/eooce/Sing-box${re}\n"
-   echo -e "${green}Feedback forum：${re}${yellow}https://bbs.vps8.me${re}\n"
-   echo -e "${green}TGFeedback group：${re}${yellow}https://t.me/vps888${re}\n"
-   purple "Reprinted, please be famous，Do not abuse\n"
-   green "1. Installsing-box"
-   echo  "==============="
-   green "2. Install fully automatic guarantee"
-   echo  "==============="
-   red "3. uninstallsing-box"
-   echo  "==============="
-   green "4. View node information"
-   echo  "==============="
-   yellow "5. Clean up all processes"
-   echo  "==============="
-   red "0. Exit script"
-   echo "==========="
-   reading "Please enter the selection(0-3): " choice
-   echo ""
-    case "${choice}" in
-        1) install_singbox ;;
-        2) install_keepalive ;;
-        3) uninstall_singbox ;; 
-        4) cat ${FILE_PATH}/list.txt && yellow "\nNode subscription link:\nClash: ${purple}https://${USERNAME}.serv00.net/get_sub.php?file=${SUB_TOKEN}_clash.yaml${re}\n\n${yellow}Sing-box: ${purple}https://${USERNAME}.serv00.net/get_sub.php?file=${SUB_TOKEN}_singbox.yaml${re}\n\n${yellow}V2rayN/Nekoray/Small rocket: ${purple}https://${USERNAME}.serv00.net/${SUB_TOKEN}_v2.log${re}\n";; 
-	5) kill_all_tasks ;;
-        0) exit 0 ;;
-        *) red "Invalid option，Please enter 0 arrive 5" ;;
-    esac
+  clear
+  echo ""
+  purple "=== Serv00|ct8Old kingsing-boxOne -key, four -in -one installation script ===\n"
+  echo -e "${green}Script address：${re}${yellow}https://github.com/eooce/Sing-box${re}\n"
+  echo -e "${green}Feedback forum：${re}${yellow}https://bbs.vps8.me${re}\n"
+  echo -e "${green}TGFeedback group：${re}${yellow}https://t.me/vps888${re}\n"
+  purple "Reprinted, please be famous，Do not abuse\n"
+  yellow "Quickly start the command00\n"
+  green "1. Installsing-box"
+  echo  "==============="
+  green "2. Install fully automatic guarantee"
+  echo  "==============="
+  red "3. uninstallsing-box"
+  echo  "==============="
+  green "4. View node information"
+  echo  "==============="
+  green "5. Check the guarantee link"
+  echo  "==============="
+  yellow "6. Clean up all processes"
+  echo  "==============="
+  red "0. Exit script"
+  echo "==========="
+  reading "Please enter the selection(0-3): " choice
+  echo ""
+  case "${choice}" in
+      1) install_singbox ;;
+      2) install_keepalive ;;
+      3) uninstall_singbox ;; 
+      4) cat ${FILE_PATH}/list.txt && yellow "\nNode subscription link:\nClash: ${purple}https://${USERNAME}.serv00.net/get_sub.php?file=${SUB_TOKEN}_clash.yaml${re}\n\n${yellow}Sing-box: ${purple}https://${USERNAME}.serv00.net/get_sub.php?file=${SUB_TOKEN}_singbox.yaml${re}\n\n${yellow}V2rayN/Nekoray/Small rocket: ${purple}https://${USERNAME}.serv00.net/${SUB_TOKEN}_v2.log${re}\n";; 
+      5) get_url_info ;;
+      6) kill_all_tasks ;;
+      0) exit 0 ;;
+      *) red "Invalid option，Please enter 0 arrive 6" ;;
+  esac
 }
 menu
