@@ -1151,7 +1151,7 @@ fi
 
 servkeep() {
 #green "Start installationCronProcess guarantee"
-curl -sSL https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/serv00keep.sh -o serv00keep.sh && chmod +x serv00keep.sh
+curl -sSL https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/serv%201/serv00keep.sh -o serv00keep.sh && chmod +x serv00keep.sh
 sed -i '' -e "14s|''|'$UUID'|" serv00keep.sh
 sed -i '' -e "17s|''|'$vless_port'|" serv00keep.sh
 sed -i '' -e "18s|''|'$vmess_port'|" serv00keep.sh
@@ -1306,7 +1306,7 @@ green "Keep the webpage：http://${USERNAME}.${USERNAME}.serv00.net/up ，Open�
 else
 red "Not installedsing-box，Choose 1 Installation" 
 fi
-curl -sSL https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/serv00.sh -o serv00.sh && chmod +x serv00.sh
+curl -sSL https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/serv%201/serv00.sh -o serv00.sh && chmod +x serv00.sh
    echo   "========================================================="
    reading "Please enter the selection【0-5】: " choice
    echo ""
