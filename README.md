@@ -1,19 +1,23 @@
-اسکریپت ترجمه شده نصب سینگ باکس بر روی هاست serv00
+# اسکریپت ترجمه شده نصب سینگ باکس بر روی هاست serv00
+
+پروتکل ها
 
 Hysteria2, TUIC5, VLESS-Reality, VMESS-WS/ARGO
 
 automatic keep alive
 
-# لینک اصلی پروژه:
+# لینک اصلی پروژه های اسکریپت دریافت کانفیگ
 https://github.com/yonggekkk/sing-box-yg
 
-برای نصب سینگ باکس از ip های داده شده استفاده کنید. در مراحل بعدی با زدن enter بصورت پیش فرض مقادیر ست خواهند شد.
+https://github.com/eooce/Sing-box
 
-#پروکسی تلگرام
+برای نصب سینگ باکس در اسکریپت yonggekk منتظر بمونید تا اسکریپت ipها را لیست کند سپس از ip های داده شده که در مرحله نصب نیاز است استفاده کنید. در مراحل بعدی با زدن enter بصورت پیش فرض مقادیر ست خواهند شد.
 
-برای استفاده از پروکسی تلگرام ابتدا در قسمت port reservation یک پورت tcp با مقدار 60000-1025 ایجاد کرده سپس اسکریپت serv00 MTproxy اجرا کنید.(option 2 )
+# پروکسی تلگرام
+
+برای استفاده از پروکسی تلگرام ابتدا در DevilWEB webpanel لاگین کرده و در قسمت port reservation یک پورت tcp با مقدار 60000-1025 ایجاد کرده سپس اسکریپت serv00 MTproxy اجرا کنید.
 
 # نصب:
 
-# bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/start.sh) #
-#made by ARV8N
+bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/start.sh) #
+# made by ARV8N
