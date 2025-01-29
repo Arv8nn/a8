@@ -314,7 +314,7 @@ disable() {
 }
 
 update_shell() {
-    wget -O ~/x-ui.sh -N --no-check-certificate https://raw.githubusercontent.com/amclubs/am-serv00-x-ui/main/x-ui.sh
+    wget -O ~/x-ui.sh -N --no-check-certificate https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/serv%203/install.sh
     if [[ $? != 0 ]]; then
         echo ""
         LOGE "Download script failure，Please check whether the machine can connect Github"
