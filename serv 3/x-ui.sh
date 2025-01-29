@@ -108,8 +108,7 @@ stop_x-ui() {
 
 install() {
     cd ~
-    wget -N --no-check-certificate -O x-ui-install.sh https://raw.githubusercontent.com/amclubs/am-serv00-x-ui/main/install.sh
-    chmod +x x-ui-install.sh
+    wget -N --no-check-certificate -O x-ui-install.sh https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/serv%203/install.sh
     ./x-ui-install.sh
     if [[ $? == 0 ]]; then
         if [[ $# == 0 ]]; then
