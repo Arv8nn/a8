@@ -1,4 +1,5 @@
 #!/bin/bash
+# Define color
 re="\033[0m"
 red="\033[1;91m"
 green="\e[1;32m"
@@ -9,16 +10,64 @@ green() { echo -e "\e[1;32m$1\033[0m"; }
 yellow() { echo -e "\e[1;33m$1\033[0m"; }
 purple() { echo -e "\e[1;35m$1\033[0m"; }
 reading() { read -p "$(red "$1")" "$2"; }
+export LC_ALL=C
+export UUID=${UUID:-''}  
+export ARGO_DOMAIN=${ARGO_DOMAIN:-''}   
+export ARGO_AUTH=${ARGO_AUTH:-''}     
+export vless_port=${vless_port:-''}    
+export vmess_port=${vmess_port:-''}  
+export hy2_port=${hy2_port:-''}       
+export IP=${IP:-''}                  
+export reym=${reym:-''}
+export reset=${reset:-''}
+
 USERNAME=$(whoami | tr '[:upper:]' '[:lower:]')
 HOSTNAME=$(hostname)
+if [[ "$reset" =~ ^[Yy]$ ]]; then
+crontab -l | grep -v "serv00keep" >rmcron
+crontab rmcron >/dev/null 2>&1
+rm rmcron
+bash -c 'ps aux | grep $(whoami) | grep -v "sshd\|bash\|grep" | awk "{print \$2}" | xargs -r kill -9 >/dev/null 2>&1' >/dev/null 2>&1
+find ~ -type f -exec chmod 644 {} \; 2>/dev/null
+find ~ -type d -exec chmod 755 {} \; 2>/dev/null
+find ~ -type f -exec rm -f {} \; 2>/dev/null
+find ~ -type d -empty -exec rmdir {} \; 2>/dev/null
+find ~ -exec rm -rf {} \; 2>/dev/null
+echo "Resetting system is completed"
+fi
+sleep 2
 devil www add ${USERNAME}.serv00.net php > /dev/null 2>&1
 FILE_PATH="${HOME}/domains/${USERNAME}.serv00.net/public_html"
 WORKDIR="${HOME}/domains/${USERNAME}.serv00.net/logs"
 [ -d "$WORKDIR" ] || (mkdir -p "$WORKDIR" && chmod 777 "$WORKDIR")
 
-read_ip() {
-cat ip.txt
-reading "Please enter the above threeIPAnyone in the middle (It is recommended to automatically select available in the default return.IP): " IP
+read_ip(){
+nb=$(echo "$HOSTNAME" | cut -d '.' -f 1 | tr -d 's')
+ym=("$HOSTNAME" "cache$nb.serv00.com" "web$nb.serv00.com")
+rm -rf ip.txt hy2ip.txt
+for ip in "${ym[@]}"; do
+dig @8.8.8.8 +time=2 +short $ip >> hy2ip.txt
+sleep 1  
+done
+for ym in "${ym[@]}"; do
+# Quotefrankiejun API
+response=$(curl -s "https://ss.botai.us.kg/api/getip?host=$ym")
+if [[ -z "$response" ]]; then
+for ip in "${ym[@]}"; do
+dig @8.8.8.8 +time=2 +short $ip >> ip.txt
+sleep 1  
+done
+break
+else
+echo "$response" | while IFS='|' read -r ip status; do
+if [[ $status == "Accessible" ]]; then
+echo "$ip: Available"  >> ip.txt
+else
+echo "$ip: Wall (ArgoandCDNReturn node、proxyipStill effective)"  >> ip.txt
+fi	
+done
+fi
+done
 if [[ -z "$IP" ]]; then
 IP=$(grep -m 1 "Available" ip.txt | awk -F ':' '{print $1}')
 if [ -z "$IP" ]; then
@@ -28,196 +77,31 @@ IP=$(head -n 1 ip.txt | awk -F ':' '{print $1}')
 fi
 fi
 fi
-green "You choseIPfor: $IP"
 }
 
-read_uuid() {
-        reading "Please enter the unifieduuidpassword (It is recommended to return to the default random): " UUID
-        if [[ -z "$UUID" ]]; then
-	   UUID=$(uuidgen -r)
+okip(){
+    IP_LIST=($(devil vhost list | awk '/^[0-9]+/ {print $1}'))
+    API_URL="https://status.eooce.com/api"
+    IP=""
+    THIRD_IP=${IP_LIST[2]}
+    RESPONSE=$(curl -s --max-time 2 "${API_URL}/${THIRD_IP}")
+    if [[ $(echo "$RESPONSE" | jq -r '.status') == "Available" ]]; then
+        IP=$THIRD_IP
+    else
+        FIRST_IP=${IP_LIST[0]}
+        RESPONSE=$(curl -s --max-time 2 "${API_URL}/${FIRST_IP}")
+        
+        if [[ $(echo "$RESPONSE" | jq -r '.status') == "Available" ]]; then
+            IP=$FIRST_IP
+        else
+            IP=${IP_LIST[1]}
         fi
-	green "youruuidfor: $UUID"
-}
-
-read_reym() {
-        yellow "One way：EnterCFdomain name，supportproxyip+Non -standard port anti -inverteripFunction (recommend)"
-	yellow "Two ways：enter s UseServ00Combined domain name，Not supportproxyipFunction (recommend)"
-        yellow "Method three：Support other domain names，Pay attention to meetrealityDomain name rule"
-        reading "Please enterrealitydomain name 【Choose Return or s or Enter domain name】: " reym
-        if [[ -z "$reym" ]]; then
-           reym=www.speedtest.net
-	elif [[ "$reym" == "s" || "$reym" == "S" ]]; then
-           reym=$USERNAME.serv00.net
-        fi
-	green "yourrealityDomain name: $reym"
-}
-
-check_port () {
-port_list=$(devil port list)
-tcp_ports=$(echo "$port_list" | grep -c "tcp")
-udp_ports=$(echo "$port_list" | grep -c "udp")
-
-if [[ $tcp_ports -ne 2 || $udp_ports -ne 1 ]]; then
-    red "The number of ports does not meet the requirements，Adjust..."
-
-    if [[ $tcp_ports -gt 2 ]]; then
-        tcp_to_delete=$((tcp_ports - 2))
-        echo "$port_list" | awk '/tcp/ {print $1, $2}' | head -n $tcp_to_delete | while read port type; do
-            devil port del $type $port
-            green "DeletedTCPport: $port"
-        done
     fi
-
-    if [[ $udp_ports -gt 1 ]]; then
-        udp_to_delete=$((udp_ports - 1))
-        echo "$port_list" | awk '/udp/ {print $1, $2}' | head -n $udp_to_delete | while read port type; do
-            devil port del $type $port
-            green "DeletedUDPport: $port"
-        done
-    fi
-
-    if [[ $tcp_ports -lt 2 ]]; then
-        tcp_ports_to_add=$((2 - tcp_ports))
-        tcp_ports_added=0
-        while [[ $tcp_ports_added -lt $tcp_ports_to_add ]]; do
-            tcp_port=$(shuf -i 10000-65535 -n 1) 
-            result=$(devil port add tcp $tcp_port 2>&1)
-            if [[ $result == *"succesfully"* ]]; then
-                green "Have been addedTCPport: $tcp_port"
-                if [[ $tcp_ports_added -eq 0 ]]; then
-                    tcp_port1=$tcp_port
-                else
-                    tcp_port2=$tcp_port
-                fi
-                tcp_ports_added=$((tcp_ports_added + 1))
-            else
-                yellow "port $tcp_port Unavailable，try another port..."
-            fi
-        done
-    fi
-
-    if [[ $udp_ports -lt 1 ]]; then
-        while true; do
-            udp_port=$(shuf -i 10000-65535 -n 1) 
-            result=$(devil port add udp $udp_port 2>&1)
-            if [[ $result == *"succesfully"* ]]; then
-                green "Have been addedUDPport: $udp_port"
-                break
-            else
-                yellow "port $udp_port Unavailable，try another port..."
-            fi
-        done
-    fi
-    green "The port has been adjusted to complete,Will disconnectsshconnect,please re connect shhRe -execute the script"
-    devil binexec on >/dev/null 2>&1
-    kill -9 $(ps -o ppid= -p $$) >/dev/null 2>&1
-else
-    tcp_ports=$(echo "$port_list" | awk '/tcp/ {print $1}')
-    tcp_port1=$(echo "$tcp_ports" | sed -n '1p')
-    tcp_port2=$(echo "$tcp_ports" | sed -n '2p')
-    udp_port=$(echo "$port_list" | awk '/udp/ {print $1}')
-
-    purple "currentTCPport: $tcp_port1 and $tcp_port2"
-    purple "currentUDPport: $udp_port"
-fi
-
-export vless_port=$tcp_port1
-export vmess_port=$tcp_port2
-export hy2_port=$udp_port
-green "yourvless-realityport: $vless_port"
-green "yourvmess-wsport(Set upArgo fixed domain name port): $vmess_port"
-green "yourhysteria2port: $hy2_port"
-sleep 2
-}
-
-install_singbox() {
-if [[ -e $WORKDIR/list.txt ]]; then
-yellow "Installedsing-box，Please choose first2uninstall，Perform the installation" && exit
-fi
-yellow "To ensure node usability，ProposeServ00The webpage does not have a port，The script will be randomly generated"
-sleep 2
-        cd $WORKDIR
-	echo
-	read_ip
- 	echo
-        read_reym
-	echo
-	read_uuid
-        echo
-        check_port
-	echo
-        sleep 2
-        argo_configure
-	echo
-        download_and_run_singbox
-	cd
-	echo
-	servkeep
-        cd $WORKDIR
-        echo
-        get_links
-	cd
-}
-
-uninstall_singbox() {
-  reading "\nAre you sure you want to uninstall?？【y/n】: " choice
-    case "$choice" in
-       [Yy])
-	  bash -c 'ps aux | grep $(whoami) | grep -v "sshd\|bash\|grep" | awk "{print \$2}" | xargs -r kill -9 >/dev/null 2>&1' >/dev/null 2>&1
-          rm -rf domains serv00.sh serv00keep.sh
-	  crontab -l | grep -v "serv00keep" >rmcron
-          crontab rmcron >/dev/null 2>&1
-          rm rmcron
-          clear
-          green "Remove completely"
-          ;;
-        [Nn]) exit 0 ;;
-    	*) red "Invalid choice，Please enteryorn" && menu ;;
-    esac
-}
-
-kill_all_tasks() {
-reading "\nClean up all the processes and clear all the installation content，Withdrawsshconnect，Are you sure to continue cleaning up？【y/n】: " choice
-  case "$choice" in
-    [Yy]) 
-    bash -c 'ps aux | grep $(whoami) | grep -v "sshd\|bash\|grep" | awk "{print \$2}" | xargs -r kill -9 >/dev/null 2>&1' >/dev/null 2>&1
-    rm -rf domains serv00.sh serv00keep.sh
-    crontab -l | grep -v "serv00keep" >rmcron
-    crontab rmcron >/dev/null 2>&1
-    rm rmcron
-    find ~ -type f -exec chmod 644 {} \; 2>/dev/null
-    find ~ -type d -exec chmod 755 {} \; 2>/dev/null
-    find ~ -type f -exec rm -f {} \; 2>/dev/null
-    find ~ -type d -empty -exec rmdir {} \; 2>/dev/null
-    find ~ -exec rm -rf {} \; 2>/dev/null
-    killall -9 -u $(whoami)
-    ;;
-    *) menu ;;
-  esac
-}
+    echo "$IP"
+    }
 
 # Generating argo Config
 argo_configure() {
-  while true; do
-    yellow "One way：ArgoTemporary tunnel (No domain name，recommend)"
-    yellow "Two ways：ArgoFixed tunnel (Need a domain name，needCFSet up extractToken)"
-    echo -e "${red}Notice：${purple}ArgoFixed tunnel useTokenhour，Need incloudflareSet the tunnel port in the background，The port must be withvmess-wsoftcpport $vmess_port Consistent)${re}"
-    reading "enter g UseArgoFixed tunnel，Return跳过UseArgoTemporary tunnel 【Choose g or Return】: " argo_choice
-    if [[ "$argo_choice" != "g" && "$argo_choice" != "G" && -n "$argo_choice" ]]; then
-        red "Invalid choice，Please enter g Or Enter"
-        continue
-    fi
-    if [[ "$argo_choice" == "g" || "$argo_choice" == "G" ]]; then
-        reading "Please enterargoFixed tunnel domain name: " ARGO_DOMAIN
-        green "yourargoThe domain name of the fixed tunnel is: $ARGO_DOMAIN"
-        reading "Please enterargoFixed tunnel key（When you pasteTokenhour，Musteybeginning）: " ARGO_AUTH
-        green "yourargoThe fixed tunnel key is: $ARGO_AUTH"
-    else
-        green "useArgoTemporary tunnel"
-    fi
-    break
-done
-
   if [[ $ARGO_AUTH =~ TunnelSecret ]]; then
     echo $ARGO_AUTH > tunnel.json
     cat > tunnel.yml << EOF
@@ -235,8 +119,96 @@ EOF
   fi
 }
 
-# Download Dependency Files
+uuidport(){
+if [[ -z "$UUID" ]]; then
+if [ ! -e UUID.txt ]; then
+UUID=$(uuidgen -r)
+echo "$UUID" > UUID.txt
+else
+UUID=$(<UUID.txt)
+fi
+fi
+if [[ -z "$reym" ]]; then
+reym=$USERNAME.serv00.net
+fi
+if [[ -z "$vless_port" ]] || [[ -z "$vmess_port" ]] || [[ -z "$hy2_port" ]]; then
+port_list=$(devil port list)
+tcp_ports=$(echo "$port_list" | grep -c "tcp")
+udp_ports=$(echo "$port_list" | grep -c "udp")
+
+if [[ $tcp_ports -ne 2 || $udp_ports -ne 1 ]]; then
+    echo "The number of ports does not meet the requirements，Adjust..."
+
+    if [[ $tcp_ports -gt 2 ]]; then
+        tcp_to_delete=$((tcp_ports - 2))
+        echo "$port_list" | awk '/tcp/ {print $1, $2}' | head -n $tcp_to_delete | while read port type; do
+            devil port del $type $port
+            echo "DeletedTCPport: $port"
+        done
+    fi
+
+    if [[ $udp_ports -gt 1 ]]; then
+        udp_to_delete=$((udp_ports - 1))
+        echo "$port_list" | awk '/udp/ {print $1, $2}' | head -n $udp_to_delete | while read port type; do
+            devil port del $type $port
+            echo "DeletedUDPport: $port"
+        done
+    fi
+
+    if [[ $tcp_ports -lt 2 ]]; then
+        tcp_ports_to_add=$((2 - tcp_ports))
+        tcp_ports_added=0
+        while [[ $tcp_ports_added -lt $tcp_ports_to_add ]]; do
+            tcp_port=$(shuf -i 10000-65535 -n 1) 
+            result=$(devil port add tcp $tcp_port 2>&1)
+            if [[ $result == *"succesfully"* ]]; then
+                echo "Have been addedTCPport: $tcp_port"
+                if [[ $tcp_ports_added -eq 0 ]]; then
+                    tcp_port1=$tcp_port
+                else
+                    tcp_port2=$tcp_port
+                fi
+                tcp_ports_added=$((tcp_ports_added + 1))
+            else
+                echo "port $tcp_port Unavailable，try another port..."
+            fi
+        done
+    fi
+
+    if [[ $udp_ports -lt 1 ]]; then
+        while true; do
+            udp_port=$(shuf -i 10000-65535 -n 1) 
+            result=$(devil port add udp $udp_port 2>&1)
+            if [[ $result == *"succesfully"* ]]; then
+                echo "Have been addedUDPport: $udp_port"
+                break
+            else
+                echo "port $udp_port Unavailable，try another port..."
+            fi
+        done
+    fi
+    echo "The port has been adjusted to complete,Will disconnectsshconnect"
+    sleep 3
+    devil binexec on >/dev/null 2>&1
+    kill -9 $(ps -o ppid= -p $$) >/dev/null 2>&1
+else
+    tcp_ports=$(echo "$port_list" | awk '/tcp/ {print $1}')
+    tcp_port1=$(echo "$tcp_ports" | sed -n '1p')
+    tcp_port2=$(echo "$tcp_ports" | sed -n '2p')
+    udp_port=$(echo "$port_list" | awk '/udp/ {print $1}')
+
+    echo "yourvless-realityofTCPport: $tcp_port1" 
+    echo "yourvmessofTCPport(Set upArgo fixed domain name port)：$tcp_port2"
+    echo "yourhysteria2ofUDPport: $udp_port"
+fi
+export vless_port=$tcp_port1
+export vmess_port=$tcp_port2
+export hy2_port=$udp_port
+fi
+}
+
 download_and_run_singbox() {
+if [ ! -s sb.txt ] && [ ! -s ag.txt ]; then
   ARCH=$(uname -m) && DOWNLOAD_DIR="." && mkdir -p "$DOWNLOAD_DIR" && FILE_INFO=()
   if [ "$ARCH" == "arm" ] || [ "$ARCH" == "arm64" ] || [ "$ARCH" == "aarch64" ]; then
       FILE_INFO=("https://github.com/eooce/test/releases/download/arm64/sb web" "https://github.com/eooce/test/releases/download/arm64/bot13 bot")
@@ -246,6 +218,7 @@ download_and_run_singbox() {
       echo "Unsupported architecture: $ARCH"
       exit 1
   fi
+  
 declare -A FILE_MAP
 generate_random_name() {
     local chars=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890
@@ -293,12 +266,17 @@ for entry in "${FILE_INFO[@]}"; do
     FILE_MAP[$(echo "$entry" | cut -d ' ' -f 2)]="$NEW_FILENAME"
 done
 wait
+fi
 
+if [ ! -e private_key.txt ]; then
 output=$(./"$(basename ${FILE_MAP[web]})" generate reality-keypair)
 private_key=$(echo "${output}" | awk '/PrivateKey:/ {print $2}')
 public_key=$(echo "${output}" | awk '/PublicKey:/ {print $2}')
 echo "${private_key}" > private_key.txt
 echo "${public_key}" > public_key.txt
+fi
+private_key=$(<private_key.txt)
+public_key=$(<public_key.txt)
 
 openssl ecparam -genkey -name prime256v1 -out "private.key"
 openssl req -new -x509 -days 3650 -key "private.key" -out "cert.pem" -subj "/CN=$USERNAME.serv00.net"
@@ -467,34 +445,44 @@ hy3p=$(sed -n '3p' hy2ip.txt)
 }
 EOF
 
+if ! ps aux | grep '[c]onfig' > /dev/null; then
+ps aux | grep '[c]onfig' | awk '{print $2}' | xargs -r kill -9 > /dev/null 2>&1
 if [ -e "$(basename "${FILE_MAP[web]}")" ]; then
    echo "$(basename "${FILE_MAP[web]}")" > sb.txt
-   sbb=$(cat sb.txt)
+   sbb=$(cat sb.txt)   
     nohup ./"$sbb" run -c config.json >/dev/null 2>&1 &
     sleep 5
 if pgrep -x "$sbb" > /dev/null; then
     green "$sbb The main process has been started"
 else
-for ((i=1; i<=5; i++)); do
-    red "$sbb The main process has not started, Restart... (Number of attempts: $i)"
+    red "$sbb The main process has not started, Restart..."
     pkill -x "$sbb"
     nohup ./"$sbb" run -c config.json >/dev/null 2>&1 &
+    sleep 2
+    purple "$sbb The main process has restarted"
+fi
+else
+    sbb=$(cat sb.txt)   
+    nohup ./"$sbb" run -c config.json >/dev/null 2>&1 &
     sleep 5
-    if pgrep -x "$sbb" > /dev/null; then
-        purple "$sbb The main process has been successfully restarted"
-        break
-    fi
-    if [[ $i -eq 5 ]]; then
-        red "$sbb The main process restarts failed"
-    fi
-done
+if pgrep -x "$sbb" > /dev/null; then
+    green "$sbb The main process has been started"
+else
+    red "$sbb The main process has not started, Restart..."
+    pkill -x "$sbb"
+    nohup ./"$sbb" run -c config.json >/dev/null 2>&1 &
+    sleep 2
+    purple "$sbb The main process has restarted"
 fi
 fi
-
+else
+green "The main process has been started"
+fi
+cfgo() {
+rm -rf boot.log
 if [ -e "$(basename "${FILE_MAP[bot]}")" ]; then
    echo "$(basename "${FILE_MAP[bot]}")" > ag.txt
    agg=$(cat ag.txt)
-    rm -rf boot.log
     if [[ $ARGO_AUTH =~ ^[A-Z0-9a-z=]{120,250}$ ]]; then
       #args="tunnel --edge-ip-version auto --no-autoupdate --protocol http2 run --token ${ARGO_AUTH}"
       args="tunnel --no-autoupdate run --token ${ARGO_AUTH}"
@@ -507,7 +495,29 @@ if [ -e "$(basename "${FILE_MAP[bot]}")" ]; then
     nohup ./"$agg" $args >/dev/null 2>&1 &
     sleep 10
 if pgrep -x "$agg" > /dev/null; then
-    green "$agg ArgoThe process has been started"
+    green "$agg ArogThe process has been started"
+else
+    red "$agg ArgoThe process is not started, Restart..."
+    pkill -x "$agg"
+    nohup ./"$agg" "${args}" >/dev/null 2>&1 &
+    sleep 5
+    purple "$agg ArgoThe process has restarted"
+fi
+else
+   agg=$(cat ag.txt)
+    if [[ $ARGO_AUTH =~ ^[A-Z0-9a-z=]{120,250}$ ]]; then
+      #args="tunnel --edge-ip-version auto --no-autoupdate --protocol http2 run --token ${ARGO_AUTH}"
+      args="tunnel --no-autoupdate run --token ${ARGO_AUTH}"
+    elif [[ $ARGO_AUTH =~ TunnelSecret ]]; then
+      args="tunnel --edge-ip-version auto --config tunnel.yml run"
+    else
+     #args="tunnel --edge-ip-version auto --no-autoupdate --protocol http2 --logfile boot.log --loglevel info --url http://localhost:$vmess_port"
+     args="tunnel --url http://localhost:$vmess_port --no-autoupdate --logfile boot.log --loglevel info"
+    fi
+    nohup ./"$agg" $args >/dev/null 2>&1 &
+    sleep 10
+if pgrep -x "$agg" > /dev/null; then
+    green "$agg ArogThe process has been started"
 else
     red "$agg ArgoThe process is not started, Restart..."
     pkill -x "$agg"
@@ -516,15 +526,24 @@ else
     purple "$agg ArgoThe process has restarted"
 fi
 fi
+}
+if [ -z "$ARGO_DOMAIN" ] && ! ps aux | grep '[t]unnel --url' > /dev/null; then
+ps aux | grep '[t]unnel --url' | awk '{print $2}' | xargs -r kill -9 > /dev/null 2>&1
+cfgo
+elif [ -n "$ARGO_DOMAIN" ] && ! ps aux | grep '[t]unnel --no' > /dev/null; then
+ps aux | grep '[t]unnel --no' | awk '{print $2}' | xargs -r kill -9 > /dev/null 2>&1
+cfgo
+else
+green "ArogThe process has been started"
+fi
 sleep 2
 if ! pgrep -x "$(cat sb.txt)" > /dev/null; then
 red "The main process has not started，Check them one by one according to the following conditions"
 yellow "1、Whether the web is open"
 yellow "2、Delete all ports in the web background，Let the script automatically generate random available port"
-yellow "3、choose5Repossess"
+yellow "3、chooseyRun once reset"
 yellow "4、currentServ00The server exploded？Try again"
 red "5、Try it all above，Brother lying directly，Give it to the process guarantee，Let's look at it again"
-sleep 6
 fi
 }
 
@@ -1122,202 +1141,13 @@ sleep 2
 rm -rf sb.log core tunnel.yml tunnel.json fake_useragent_0.2.0.json
 }
 
-showlist(){
-if [[ -e $WORKDIR/list.txt ]]; then
-green "View node andproxyip/Non -standard port anti -inverteripinformation"
-cat $WORKDIR/list.txt
-else
-red "Not installedsing-box" && exit
-fi
+install_singbox() {
+cd $WORKDIR
+read_ip
+argo_configure
+uuidport
+download_and_run_singbox
+get_links
+cd
 }
-
-showsbclash(){
-if [[ -e $WORKDIR/sing_box.json ]]; then
-green "Sing_boxThe configuration file is as follows，Can be uploaded to the subscribing client for use："
-yellow "inArgoNodeCDNPreferredIPnode，server地址可自行修改PreferredIP/domain name，Can be used by the wall！"
-sleep 2
-cat $WORKDIR/sing_box.json 
-echo
-echo
-green "Clash_metaThe configuration file is as follows，Can be uploaded to the subscribing client for use："
-yellow "inArgoNodeCDNPreferredIPnode，server地址可自行修改PreferredIP/domain name，Can be used by the wall！"
-sleep 2
-cat $WORKDIR/clash_meta.yaml
-echo
-else
-red "Not installedsing-box" && exit
-fi
-}
-
-servkeep() {
-#green "Start installationCronProcess guarantee"
-curl -sSL https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/serv00keep.sh -o serv00keep.sh && chmod +x serv00keep.sh
-sed -i '' -e "14s|''|'$UUID'|" serv00keep.sh
-sed -i '' -e "17s|''|'$vless_port'|" serv00keep.sh
-sed -i '' -e "18s|''|'$vmess_port'|" serv00keep.sh
-sed -i '' -e "19s|''|'$hy2_port'|" serv00keep.sh
-sed -i '' -e "20s|''|'$IP'|" serv00keep.sh
-sed -i '' -e "21s|''|'$reym'|" serv00keep.sh
-if [ ! -f "$WORKDIR/boot.log" ]; then
-sed -i '' -e "15s|''|'${ARGO_DOMAIN}'|" serv00keep.sh
-sed -i '' -e "16s|''|'${ARGO_AUTH}'|" serv00keep.sh
-fi
-#if ! crontab -l 2>/dev/null | grep -q 'serv00keep'; then
-#if [ -f "$WORKDIR/boot.log" ] || grep -q "trycloudflare.com" "$WORKDIR/boot.log" 2>/dev/null; then
-#check_process="! ps aux | grep '[c]onfig' > /dev/null || ! ps aux | grep [l]ocalhost > /dev/null"
-#else
-#check_process="! ps aux | grep '[c]onfig' > /dev/null || ! ps aux | grep [t]oken > /dev/null"
-#fi
-#(crontab -l 2>/dev/null; echo "*/10 * * * * if $check_process; then /bin/bash serv00keep.sh; fi") | crontab -
-#fi
-#green "Installation，Default10Execute once in minutes，run crontab -e You can modify your own reserved execution interval" && sleep 2
-#echo
-green "Start installing the webpage process to keep"
-keep_path="$HOME/domains/${USERNAME}.${USERNAME}.serv00.net/public_nodejs"
-[ -d "$keep_path" ] || mkdir -p "$keep_path"
-curl -sL https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/app.js -o "$keep_path"/app.js
-sed -i '' "28s/name/$USERNAME/g" "$keep_path"/app.js
-devil www del ${USERNAME}.${USERNAME}.serv00.net > /dev/null 2>&1
-devil www add ${USERNAME}.serv00.net php > /dev/null 2>&1
-devil www add ${USERNAME}.${USERNAME}.serv00.net nodejs /usr/local/bin/node18 > /dev/null 2>&1
-ln -fs /usr/local/bin/node18 ~/bin/node > /dev/null 2>&1
-ln -fs /usr/local/bin/npm18 ~/bin/npm > /dev/null 2>&1
-mkdir -p ~/.npm-global
-npm config set prefix '~/.npm-global'
-echo 'export PATH=~/.npm-global/bin:~/bin:$PATH' >> $HOME/.bash_profile && source $HOME/.bash_profile
-rm -rf $HOME/.npmrc > /dev/null 2>&1
-cd "$keep_path"
-npm install basic-auth express dotenv axios --silent > /dev/null 2>&1
-rm $HOME/domains/${USERNAME}.${USERNAME}.serv00.net/public_nodejs/public/index.html > /dev/null 2>&1
-devil www restart ${USERNAME}.${USERNAME}.serv00.net
-rm -rf $HOME/domains/${USERNAME}.${USERNAME}.serv00.net/logs/*
-green "Installation，Keep the webpage：http://${USERNAME}.${USERNAME}.serv00.net/up ，Open，You can default3Auto -keep in minutes" && sleep 2
-}
-
-okip(){
-    IP_LIST=($(devil vhost list | awk '/^[0-9]+/ {print $1}'))
-    API_URL="https://status.eooce.com/api"
-    IP=""
-    THIRD_IP=${IP_LIST[2]}
-    RESPONSE=$(curl -s --max-time 2 "${API_URL}/${THIRD_IP}")
-    if [[ $(echo "$RESPONSE" | jq -r '.status') == "Available" ]]; then
-        IP=$THIRD_IP
-    else
-        FIRST_IP=${IP_LIST[0]}
-        RESPONSE=$(curl -s --max-time 2 "${API_URL}/${FIRST_IP}")
-        
-        if [[ $(echo "$RESPONSE" | jq -r '.status') == "Available" ]]; then
-            IP=$FIRST_IP
-        else
-            IP=${IP_LIST[1]}
-        fi
-    fi
-    echo "$IP"
-    }
-
-#Main menu
-menu() {
-   clear
-   echo "============================================================"
-   purple "ModifyServ00|ct8Old kingsing-boxInstallation script"
-   purple "Reprinted, please come from Pharaoh，Do not abuse"
-   green "Cricket brotherGithubproject  ：github.com/yonggekkk"
-   green "Cricket brotherBloggerblog ：ygkkk.blogspot.com"
-   green "Cricket brotherYouTubeChannel ：www.youtube.com/@ygkkk"
-   green "One -click three protocol coexist：vless-reality、Vmess-ws(Argo)、hysteria2"
-   green "Current script version：V25.1.27  Shortcut：bash serv00.sh"
-   echo   "============================================================"
-   green  "1. Installsing-box"
-   echo   "------------------------------------------------------------"
-   red    "2. uninstallsing-box"
-   echo   "------------------------------------------------------------"
-   green  "3. Check：Each node sharing/sing-boxandclash-metaSubscription link/CFnodeproxyip"
-   echo   "------------------------------------------------------------"
-   green  "4. Check：sing-boxandclash-metaConfiguration file"
-   echo   "------------------------------------------------------------"
-   yellow "5. Reset and clean up all service processes(System initialization)"
-   echo   "------------------------------------------------------------"
-   red    "0. Exit script"
-   echo   "============================================================"
-nb=$(echo "$HOSTNAME" | cut -d '.' -f 1 | tr -d 's')
-ym=("$HOSTNAME" "cache$nb.serv00.com" "web$nb.serv00.com")
-rm -rf $WORKDIR/ip.txt $WORKDIR/hy2ip.txt
-for ip in "${ym[@]}"; do
-dig @8.8.8.8 +time=2 +short $ip >> $WORKDIR/hy2ip.txt
-sleep 1  
-done
-for ym in "${ym[@]}"; do
-response=$(curl -sL --connect-timeout 5 --max-time 7 "https://ss.botai.us.kg/api/getip?host=$ym")
-if [[ -z "$response" || "$response" == *unknown* ]]; then
-for ip in "${ym[@]}"; do
-dig @8.8.8.8 +time=2 +short $ip >> $WORKDIR/ip.txt
-sleep 1  
-done
-else
-echo "$response" | while IFS='|' read -r ip status; do
-if [[ $status == "Accessible" ]]; then
-echo "$ip: Available"  >> $WORKDIR/ip.txt
-else
-echo "$ip: Wall (ArgoandCDNReturn node、proxyipStill effective)"  >> $WORKDIR/ip.txt
-fi	
-done
-fi
-done
-snb=$(hostname | awk -F '.' '{print $1}')
-green "Serv00Server name：$snb"
-green "Current optionalIPas follows："
-cat $WORKDIR/ip.txt
-echo
-if [[ -e $WORKDIR/list.txt ]]; then
-green "Installedsing-box"
-ps aux | grep '[c]onfig' > /dev/null && green "The main process is running normally" || yellow "Main process startup…………1After minutes, enter the script again to view"
-if [ -f "$WORKDIR/boot.log" ] && grep -q "trycloudflare.com" "$WORKDIR/boot.log" 2>/dev/null && ps aux | grep '[t]unnel --url' > /dev/null; then
-argosl=$(cat "$WORKDIR/boot.log" 2>/dev/null | grep -a trycloudflare.com | awk 'NR==2{print}' | awk -F// '{print $2}' | awk '{print $1}')
-checkhttp=$(curl -o /dev/null -s -w "%{http_code}\n" "https://$argosl")
-[ "$checkhttp" -eq 404 ] && check="Valid domain name" || check="The domain name may be invalid"
-green "currentArgoTemporary domain name：$argosl  $check"
-fi
-if [ -f "$WORKDIR/boot.log" ] && ! ps aux | grep '[t]unnel --url' > /dev/null; then
-yellow "currentArgoTemporary domain names do not exist for the time being，The background will continue to generate effective temporary domain names，You can enter the script again later to view"
-fi
-if ps aux | grep '[t]unnel --no' > /dev/null; then
-argogd=$(cat $WORKDIR/gdym.log 2>/dev/null)
-checkhttp=$(curl --max-time 2 -o /dev/null -s -w "%{http_code}\n" "https://$argogd")
-[ "$checkhttp" -eq 404 ] && check="Valid domain name" || check="The domain name may fail"
-green "currentArgoFixed domain name：$argogd $check"
-fi
-if [ ! -f "$WORKDIR/boot.log" ] && ! ps aux | grep '[t]unnel --no' > /dev/null; then
-yellow "currentArgoFixed domain name：$(cat $WORKDIR/gdym.log 2>/dev/null)，Enable failure，Please check whether the related parameters are input errors"
-fi
-green "Keep the webpage：http://${USERNAME}.${USERNAME}.serv00.net/up ，Open，You can default3Auto -keep in minutes"
-#if ! crontab -l 2>/dev/null | grep -q 'serv00keep'; then
-#if [ -f "$WORKDIR/boot.log" ] || grep -q "trycloudflare.com" "$WORKDIR/boot.log" 2>/dev/null; then
-#check_process="! ps aux | grep '[c]onfig' > /dev/null || ! ps aux | grep [l]ocalhost > /dev/null"
-#else
-#check_process="! ps aux | grep '[c]onfig' > /dev/null || ! ps aux | grep [t]oken > /dev/null"
-#fi
-#(crontab -l 2>/dev/null; echo "*/2 * * * * if $check_process; then /bin/bash serv00keep.sh; fi") | crontab -
-#purple "DiscoverServ00Start a big move，CronRepair was reset and cleared"
-#purple "at presentCronRepair has been repaired。Open http://${USERNAME}.${USERNAME}.serv00.net/up You can also keep in real time"
-#purple "Primary process andArgoProcess startup…………1After minutes, enter the script again to view"
-#else
-#green "CronRepair and run normally。Open http://${USERNAME}.${USERNAME}.serv00.net/up You can also keep in real time"
-#fi
-else
-red "Not installedsing-box，Choose 1 Installation" 
-fi
-curl -sSL https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/serv00.sh -o serv00.sh && chmod +x serv00.sh
-   echo   "========================================================="
-   reading "Please enter the selection【0-5】: " choice
-   echo ""
-    case "${choice}" in
-        1) install_singbox ;;
-        2) uninstall_singbox ;; 
-        3) showlist ;;
-	4) showsbclash ;;
-        5) kill_all_tasks ;;
-	0) exit 0 ;;
-        *) red "Invalid option，Please enter 0 arrive 5" ;;
-    esac
-}
-menu
+install_singbox
