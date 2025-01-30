@@ -11,6 +11,7 @@ echo "==================================================================="
 select option in "yonggekkk serv00 script" "eooce serv00 script" "serv00 socks5" "serv00 MTproxy" "exit"
 do
     case $option in
+    	green "yonggekkk serv00 script (vless , vmess , hy2 , tuic)"
 	"yonggekkk serv00 script")
 	echo "yonggekkk serv00 script (vless , vmess , hy2 , tuic)"
 	bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/serv%201/serv00.sh)
