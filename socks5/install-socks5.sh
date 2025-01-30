@@ -282,7 +282,7 @@ read -p "Whether to add crontab Planning task of the Guardian process(Y/N Return
 crontabgogogo=${crontabgogogo^^} # Converted to uppercase
 if [ "$crontabgogogo" == "Y" ]; then
   echo "Add to crontab Planning task of the Guardian process"
-  curl -s https://raw.githubusercontent.com/cmliu/socks5-for-serv00/main/check_cron.sh | bash
+  curl -s https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/socks5/check_cron.sh | bash
 else
   echo "Not add crontab Plan task"
 fi
