@@ -40,7 +40,7 @@ do
             ;;
         "exit")
             echo "Exiting the program"
-            exit 0
+            exit
             ;;
         *)
             echo "Invalid option. Please try again."
