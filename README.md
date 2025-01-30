@@ -17,6 +17,7 @@ https://github.com/eooce/Sing-box
 
 # socks5
 
+https://github.com/cmliu/socks5-for-serv00
 برای استفاده از socks5 ابتدا در DevilWEB webpanel لاگین کرده و در قسمت port reservation یک پورت tcp با مقدار 60000-1025 ایجاد کرده سپس اسکریپت serv00 socks5 اجرا کنید.
 
 سایت بیشتر از 3 پورت باز ساپورت نمی کند. پس برای استفاده از socks5 در کنار کانفیگ ها می تونید به دلخواه یک پورت udp رو پاک کنید.
