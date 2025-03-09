@@ -1,7 +1,7 @@
 #!/bin/env bash
 
 yonggekkk_script="https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/serv%201/serv00.sh"
-eooce_script="https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/serv%202/sb_serv00.sh"
+eooce_script="https://raw.githubusercontent.com/eooce/sing-box/main/sb_serv00.sh"
 socks5_script="https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/socks5/install-socks5.sh"
 mtproxy_script="https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/mt.sh"
 
@@ -60,9 +60,10 @@ function menu () {
     echo -e "\t1. yonggekkk serv00 script (vless , vmess , hy2 , tuic)\n"
     echo -e "\t2. eooce serv00 script (vless , vmess , hy2 , tuic)"
     tput setaf 1
-    echo -e "\t(this script has problems whit other language, so i just translate the menu"
-    echo -e "\tin next steps just press enter)"
-    echo -e "\tfor uninstall select: 3\n"
+    echo -e "\tthis script has problems whit other language so:"
+    echo -e "\toption 1 for install. in the next steps just press enter"
+    echo -e "\toption 2 for keepalive script"
+    echo -e "\tfor uninstall select option 3\n"
     tput setaf 3 
     echo -e "\t3. serv00 socks5\n"
     echo -e "\t4. serv00 MTproxy\n"
