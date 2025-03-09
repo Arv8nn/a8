@@ -11,14 +11,21 @@ purple() { echo -e "\e[1;35m$1\033[0m"; }
 reading() { read -p "$(red "$1")" "$2"; }
 USERNAME=$(whoami | tr '[:upper:]' '[:lower:]')
 HOSTNAME=$(hostname)
+WORKDIR="${HOME}/domains/${USERNAME}.serv00.net/logs"
+snb=$(hostname | awk -F '.' '{print $1}')
+nb=$(hostname | cut -d '.' -f 1 | tr -d 's')
 devil www add ${USERNAME}.serv00.net php > /dev/null 2>&1
 FILE_PATH="${HOME}/domains/${USERNAME}.serv00.net/public_html"
-WORKDIR="${HOME}/domains/${USERNAME}.serv00.net/logs"
+keep_path="${HOME}/domains/${snb}.${USERNAME}.serv00.net/public_nodejs"
+[ -d "$FILE_PATH" ] || mkdir -p "$FILE_PATH"
+[ -d "$keep_path" ] || mkdir -p "$keep_path"
 [ -d "$WORKDIR" ] || (mkdir -p "$WORKDIR" && chmod 777 "$WORKDIR")
+curl -sk "http://${snb}.${USERNAME}.serv00.net/up" > /dev/null 2>&1
+devil binexec on >/dev/null 2>&1
 
 read_ip() {
 cat ip.txt
-reading "Please enter the above threeIPAnyone in the middle (It is recommended to automatically select available in the default return.IP): " IP
+reading "Please enter the above threeIPAny one of (It is recommended to select the default carriage return automaticallyIP): " IP
 if [[ -z "$IP" ]]; then
 IP=$(grep -m 1 "Available" ip.txt | awk -F ':' '{print $1}')
 if [ -z "$IP" ]; then
@@ -28,11 +35,11 @@ IP=$(head -n 1 ip.txt | awk -F ':' '{print $1}')
 fi
 fi
 fi
-green "You choseIPfor: $IP"
+green "Your choiceIPfor: $IP"
 }
 
 read_uuid() {
-        reading "Please enter the unifieduuidpassword (It is recommended to return to the default random): " UUID
+        reading "Please enter a unifieduuidpassword (It is recommended to enter the carriage randomly by default): " UUID
         if [[ -z "$UUID" ]]; then
 	   UUID=$(uuidgen -r)
         fi
@@ -40,16 +47,56 @@ read_uuid() {
 }
 
 read_reym() {
-        yellow "One way：EnterCFdomain name，supportproxyip+Non -standard port anti -inverteripFunction (recommend)"
-	yellow "Two ways：enter s UseServ00Combined domain name，Not supportproxyipFunction (recommend)"
-        yellow "Method three：Support other domain names，Pay attention to meetrealityDomain name rule"
-        reading "Please enterrealitydomain name 【Choose Return or s or Enter domain name】: " reym
+	yellow "Method one：(recommend)useServ00Bring your own domain name，Not supportedproxyipFunction：Enter Enter"
+        yellow "Method 2：useCFdomain name(www.speedtest.net)，supportproxyip+Non-standard port anti-generationipFunction：enters"
+        yellow "Method Three：Support other domain names，Be careful to meetrealityDomain Name Rules：Enter the domain name"
+        reading "Please enterrealitydomain name 【Please select Enter or s or Enter the domain name]: " reym
         if [[ -z "$reym" ]]; then
-           reym=www.speedtest.net
+	    reym=$USERNAME.serv00.net
 	elif [[ "$reym" == "s" || "$reym" == "S" ]]; then
-           reym=$USERNAME.serv00.net
+	    reym=www.speedtest.net
         fi
-	green "yourrealityDomain name: $reym"
+	green "yourrealityThe domain name is: $reym"
+}
+
+resallport(){
+portlist=$(devil port list | grep -E '^[0-9]+[[:space:]]+[a-zA-Z]+' | sed 's/^[[:space:]]*//')
+if [[ -z "$portlist" ]]; then
+yellow "No port"
+else
+while read -r line; do
+port=$(echo "$line" | awk '{print $1}')
+port_type=$(echo "$line" | awk '{print $2}')
+yellow "Delete the port $port ($port_type)"
+devil port del "$port_type" "$port"
+done <<< "$portlist"
+fi
+check_port
+if [[ -e $WORKDIR/config.json ]]; then
+hyp=$(jq -r '.inbounds[0].listen_port' $WORKDIR/config.json)
+vlp=$(jq -r '.inbounds[3].listen_port' $WORKDIR/config.json)
+vmp=$(jq -r '.inbounds[4].listen_port' $WORKDIR/config.json)
+purple "DetectedServ00-sb-ygThe script is installed，Perform port replacement，Please wait……"
+sed -i '' "12s/$hyp/$hy2_port/g" $WORKDIR/config.json
+sed -i '' "33s/$hyp/$hy2_port/g" $WORKDIR/config.json
+sed -i '' "54s/$hyp/$hy2_port/g" $WORKDIR/config.json
+sed -i '' "75s/$vlp/$vless_port/g" $WORKDIR/config.json
+sed -i '' "102s/$vmp/$vmess_port/g" $WORKDIR/config.json
+sed -i '' -e "17s|'$vlp'|'$vless_port'|" serv00keep.sh
+sed -i '' -e "18s|'$vmp'|'$vmess_port'|" serv00keep.sh
+sed -i '' -e "19s|'$hyp'|'$hy2_port'|" serv00keep.sh
+bash -c 'ps aux | grep $(whoami) | grep -v "sshd\|bash\|grep" | awk "{print \$2}" | xargs -r kill -9 >/dev/null 2>&1' >/dev/null 2>&1
+sleep 1
+curl -sk "http://${snb}.${USERNAME}.serv00.net/up" > /dev/null 2>&1
+sleep 5
+green "Port replacement is completed！"
+ps aux | grep '[r]un -c con' > /dev/null && green "The main process started successfully，Single node user modify the client three-protocol port，Subscribe to the user update" || yellow "Sing-boxThe main process failed to start，Reset the port again or brush the web page several times more，May be automatically restored"
+if [ -f "$WORKDIR/boot.log" ]; then
+ps aux | grep '[t]unnel --u' > /dev/null && green "ArgoTemporary tunnel started successfully，Single node user on clienthost/sniChange the temporary domain name，Subscribe to the user update" || yellow "ArgoTemporary tunnel startup failed，Reset the port again or brush the web page several times more，May be automatically restored"
+else
+ps aux | grep '[t]unnel --n' > /dev/null && green "ArgoThe fixed tunnel started successfully" || yellow "ArgoFixed tunnel startup failed，PleaseCFChange the tunnel port：$vmess_port，A few more times to keep alive web pages may be automatically restored"
+fi
+fi
 }
 
 check_port () {
@@ -58,7 +105,7 @@ tcp_ports=$(echo "$port_list" | grep -c "tcp")
 udp_ports=$(echo "$port_list" | grep -c "udp")
 
 if [[ $tcp_ports -ne 2 || $udp_ports -ne 1 ]]; then
-    red "The number of ports does not meet the requirements，Adjust..."
+    red "The number of ports does not meet the requirements，Adjusting..."
 
     if [[ $tcp_ports -gt 2 ]]; then
         tcp_to_delete=$((tcp_ports - 2))
@@ -83,7 +130,7 @@ if [[ $tcp_ports -ne 2 || $udp_ports -ne 1 ]]; then
             tcp_port=$(shuf -i 10000-65535 -n 1) 
             result=$(devil port add tcp $tcp_port 2>&1)
             if [[ $result == *"succesfully"* ]]; then
-                green "Have been addedTCPport: $tcp_port"
+                green "AddedTCPport: $tcp_port"
                 if [[ $tcp_ports_added -eq 0 ]]; then
                     tcp_port1=$tcp_port
                 else
@@ -91,7 +138,7 @@ if [[ $tcp_ports -ne 2 || $udp_ports -ne 1 ]]; then
                 fi
                 tcp_ports_added=$((tcp_ports_added + 1))
             else
-                yellow "port $tcp_port Unavailable，try another port..."
+                yellow "port $tcp_port Not available，Try another port..."
             fi
         done
     fi
@@ -101,16 +148,17 @@ if [[ $tcp_ports -ne 2 || $udp_ports -ne 1 ]]; then
             udp_port=$(shuf -i 10000-65535 -n 1) 
             result=$(devil port add udp $udp_port 2>&1)
             if [[ $result == *"succesfully"* ]]; then
-                green "Have been addedUDPport: $udp_port"
+                green "AddedUDPport: $udp_port"
                 break
             else
-                yellow "port $udp_port Unavailable，try another port..."
+                yellow "port $udp_port Not available，Try another port..."
             fi
         done
     fi
-    green "The port has been adjusted to complete,Will disconnectsshconnect,please re connect shhRe -execute the script"
-    devil binexec on >/dev/null 2>&1
-    kill -9 $(ps -o ppid= -p $$) >/dev/null 2>&1
+    #green "Port adjustment completed,Will be disconnectedsshconnect,Please reconnectshhRe-execute the script"
+    #devil binexec on >/dev/null 2>&1
+    #kill -9 $(ps -o ppid= -p $$) >/dev/null 2>&1
+    sleep 3
 else
     tcp_ports=$(echo "$port_list" | awk '/tcp/ {print $1}')
     tcp_port1=$(echo "$tcp_ports" | sed -n '1p')
@@ -120,21 +168,18 @@ else
     purple "currentTCPport: $tcp_port1 and $tcp_port2"
     purple "currentUDPport: $udp_port"
 fi
-
 export vless_port=$tcp_port1
 export vmess_port=$tcp_port2
 export hy2_port=$udp_port
 green "yourvless-realityport: $vless_port"
-green "yourvmess-wsport(Set upArgo fixed domain name port): $vmess_port"
+green "yourvmess-wsport(set upArgoFixed domain name port): $vmess_port"
 green "yourhysteria2port: $hy2_port"
-sleep 2
 }
 
 install_singbox() {
 if [[ -e $WORKDIR/list.txt ]]; then
-yellow "Installedsing-box，Please choose first2uninstall，Perform the installation" && exit
+yellow "Installedsing-box，Please select first2uninstall，Execute the installation again" && exit
 fi
-yellow "To ensure node usability，ProposeServ00The webpage does not have a port，The script will be randomly generated"
 sleep 2
         cd $WORKDIR
 	echo
@@ -151,40 +196,56 @@ sleep 2
 	echo
         download_and_run_singbox
 	cd
+        fastrun
+	green "Create a shortcut：sb"
 	echo
 	servkeep
         cd $WORKDIR
         echo
         get_links
 	cd
+        purple "************************************************************"
+        purple "Serv00-sb-ygThe script installation ends！When entering the script again，Please enter a shortcut：sb"
+	purple "************************************************************"
 }
 
 uninstall_singbox() {
-  reading "\nAre you sure you want to uninstall?？【y/n】: " choice
+  reading "\nAre you sure you want to uninstall？y/n: " choice
     case "$choice" in
        [Yy])
 	  bash -c 'ps aux | grep $(whoami) | grep -v "sshd\|bash\|grep" | awk "{print \$2}" | xargs -r kill -9 >/dev/null 2>&1' >/dev/null 2>&1
-          rm -rf domains serv00.sh serv00keep.sh
-	  crontab -l | grep -v "serv00keep" >rmcron
-          crontab rmcron >/dev/null 2>&1
-          rm rmcron
-          clear
-          green "Remove completely"
+          rm -rf domains bin serv00keep.sh webport.sh
+          sed -i '/export PATH="\$HOME\/bin:\$PATH"/d' "${HOME}/.bashrc" >/dev/null 2>&1
+          source "${HOME}/.bashrc" >/dev/null 2>&1
+	  #crontab -l | grep -v "serv00keep" >rmcron
+          #crontab rmcron >/dev/null 2>&1
+          #rm rmcron
+          purple "************************************************************"
+          purple "Serv00-sb-ygUninstall complete！"
+          purple "Welcome to continue using scripts：bash <(curl -Ls https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/serv00.sh)"
+          purple "************************************************************"
           ;;
         [Nn]) exit 0 ;;
-    	*) red "Invalid choice，Please enteryorn" && menu ;;
+    	*) red "Invalid selection，Please enteryorn" && menu ;;
     esac
 }
 
 kill_all_tasks() {
-reading "\nClean up all the processes and clear all the installation content，Withdrawsshconnect，Are you sure to continue cleaning up？【y/n】: " choice
+reading "\nClean all processes and clear all installation content，Will exitsshconnect，Are you sure to continue cleaning?？y/n: " choice
   case "$choice" in
     [Yy]) 
     bash -c 'ps aux | grep $(whoami) | grep -v "sshd\|bash\|grep" | awk "{print \$2}" | xargs -r kill -9 >/dev/null 2>&1' >/dev/null 2>&1
-    rm -rf domains serv00.sh serv00keep.sh
-    crontab -l | grep -v "serv00keep" >rmcron
-    crontab rmcron >/dev/null 2>&1
-    rm rmcron
+    devil www del ${snb}.${USERNAME}.serv00.net > /dev/null 2>&1
+    devil www del ${USERNAME}.serv00.net > /dev/null 2>&1
+    sed -i '/export PATH="\$HOME\/bin:\$PATH"/d' "${HOME}/.bashrc" >/dev/null 2>&1
+    source "${HOME}/.bashrc" >/dev/null 2>&1 
+    #crontab -l | grep -v "serv00keep" >rmcron
+    #crontab rmcron >/dev/null 2>&1
+    #rm rmcron
+    purple "************************************************************"
+    purple "Serv00-sb-ygCleaning and resetting completed！"
+    purple "Welcome to continue using scripts：bash <(curl -Ls https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/serv00.sh)"
+    purple "************************************************************"
     find ~ -type f -exec chmod 644 {} \; 2>/dev/null
     find ~ -type d -exec chmod 755 {} \; 2>/dev/null
     find ~ -type f -exec rm -f {} \; 2>/dev/null
@@ -199,53 +260,29 @@ reading "\nClean up all the processes and clear all the installation content，W
 # Generating argo Config
 argo_configure() {
   while true; do
-    yellow "One way：ArgoTemporary tunnel (No domain name，recommend)"
-    yellow "Two ways：ArgoFixed tunnel (Need a domain name，needCFSet up extractToken)"
-    echo -e "${red}Notice：${purple}ArgoFixed tunnel useTokenhour，Need incloudflareSet the tunnel port in the background，The port must be withvmess-wsoftcpport $vmess_port Consistent)${re}"
-    reading "enter g UseArgoFixed tunnel，Return跳过UseArgoTemporary tunnel 【Choose g or Return】: " argo_choice
+    yellow "Method one：(recommend)No domain name requiredArgoTemporary tunnel：Enter Enter"
+    yellow "Method 2：Need a domain nameArgoFixed tunnel(needCFSet up extractionToken)：enterg"
+    reading "【Please select g or Enter】: " argo_choice
     if [[ "$argo_choice" != "g" && "$argo_choice" != "G" && -n "$argo_choice" ]]; then
-        red "Invalid choice，Please enter g Or Enter"
+        red "Invalid selection，Please enter g Or return"
         continue
     fi
     if [[ "$argo_choice" == "g" || "$argo_choice" == "G" ]]; then
         reading "Please enterargoFixed tunnel domain name: " ARGO_DOMAIN
-        green "yourargoThe domain name of the fixed tunnel is: $ARGO_DOMAIN"
-        reading "Please enterargoFixed tunnel key（When you pasteTokenhour，Musteybeginning）: " ARGO_AUTH
+        green "yourargoThe fixed tunnel domain name is: $ARGO_DOMAIN"
+        reading "Please enterargoFixed tunnel key（When you pasteTokenhour，Must beeybeginning）: " ARGO_AUTH
         green "yourargoThe fixed tunnel key is: $ARGO_AUTH"
     else
         green "useArgoTemporary tunnel"
     fi
     break
 done
-
-  if [[ $ARGO_AUTH =~ TunnelSecret ]]; then
-    echo $ARGO_AUTH > tunnel.json
-    cat > tunnel.yml << EOF
-tunnel: $(cut -d\" -f12 <<< "$ARGO_AUTH")
-credentials-file: tunnel.json
-protocol: http2
-
-ingress:
-  - hostname: $ARGO_DOMAIN
-    service: http://localhost:$vmess_port
-    originRequest:
-      noTLSVerify: true
-  - service: http_status:404
-EOF
-  fi
 }
 
 # Download Dependency Files
 download_and_run_singbox() {
-  ARCH=$(uname -m) && DOWNLOAD_DIR="." && mkdir -p "$DOWNLOAD_DIR" && FILE_INFO=()
-  if [ "$ARCH" == "arm" ] || [ "$ARCH" == "arm64" ] || [ "$ARCH" == "aarch64" ]; then
-      FILE_INFO=("https://github.com/eooce/test/releases/download/arm64/sb web" "https://github.com/eooce/test/releases/download/arm64/bot13 bot")
-  elif [ "$ARCH" == "amd64" ] || [ "$ARCH" == "x86_64" ] || [ "$ARCH" == "x86" ]; then
-      FILE_INFO=("https://github.com/yonggekkk/Cloudflare_vless_trojan/releases/download/serv00/sb web" "https://github.com/yonggekkk/Cloudflare_vless_trojan/releases/download/serv00/server bot")
-  else
-      echo "Unsupported architecture: $ARCH"
-      exit 1
-  fi
+DOWNLOAD_DIR="." && mkdir -p "$DOWNLOAD_DIR" && FILE_INFO=()
+FILE_INFO=("https://github.com/yonggekkk/Cloudflare_vless_trojan/releases/download/serv00/sb web" "https://github.com/yonggekkk/Cloudflare_vless_trojan/releases/download/serv00/server bot")
 declare -A FILE_MAP
 generate_random_name() {
     local chars=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890
@@ -299,17 +336,8 @@ private_key=$(echo "${output}" | awk '/PrivateKey:/ {print $2}')
 public_key=$(echo "${output}" | awk '/PublicKey:/ {print $2}')
 echo "${private_key}" > private_key.txt
 echo "${public_key}" > public_key.txt
-
 openssl ecparam -genkey -name prime256v1 -out "private.key"
 openssl req -new -x509 -days 3650 -key "private.key" -out "cert.pem" -subj "/CN=$USERNAME.serv00.net"
-
-nb=$(hostname | cut -d '.' -f 1 | tr -d 's')
-if [ "$nb" == "14" ]; then
-ytb='"jnn-pa.googleapis.com",'
-fi
-hy1p=$(sed -n '1p' hy2ip.txt)
-hy2p=$(sed -n '2p' hy2ip.txt)
-hy3p=$(sed -n '3p' hy2ip.txt)
   cat > config.json << EOF
 {
   "log": {
@@ -319,9 +347,9 @@ hy3p=$(sed -n '3p' hy2ip.txt)
   },
     "inbounds": [
     {
-       "tag": "hysteria-in",
+       "tag": "hysteria-in1",
        "type": "hysteria2",
-       "listen": "$hy1p",
+       "listen": "$(dig @8.8.8.8 +time=5 +short "web$nb.serv00.com" | sort -u)",
        "listen_port": $hy2_port,
        "users": [
          {
@@ -340,9 +368,9 @@ hy3p=$(sed -n '3p' hy2ip.txt)
         }
     },
         {
-       "tag": "hysteria-in",
+       "tag": "hysteria-in2",
        "type": "hysteria2",
-       "listen": "$hy2p",
+       "listen": "$(dig @8.8.8.8 +time=5 +short "$HOSTNAME" | sort -u)",
        "listen_port": $hy2_port,
        "users": [
          {
@@ -361,9 +389,9 @@ hy3p=$(sed -n '3p' hy2ip.txt)
         }
     },
         {
-       "tag": "hysteria-in",
+       "tag": "hysteria-in3",
        "type": "hysteria2",
-       "listen": "$hy3p",
+       "listen": "$(dig @8.8.8.8 +time=5 +short "cache$nb.serv00.com" | sort -u)",
        "listen_port": $hy2_port,
        "users": [
          {
@@ -425,7 +453,7 @@ hy3p=$(sed -n '3p' hy2ip.txt)
       }
     }
  ],
-    "outbounds": [
+     "outbounds": [
      {
         "type": "wireguard",
         "tag": "wg",
@@ -446,19 +474,32 @@ hy3p=$(sed -n '3p' hy2ip.txt)
     {
       "type": "direct",
       "tag": "direct"
-    },
-    {
-      "type": "block",
-      "tag": "block"
     }
   ],
    "route": {
+       "rule_set": [
+      {
+        "tag": "google-gemini",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/google-gemini.srs",
+        "download_detour": "direct"
+      }
+    ],
+EOF
+if [[ "$nb" =~ (14|15|16) ]]; then
+cat >> config.json <<EOF 
     "rules": [
     {
      "domain": [
-     $ytb
-     "oh.my.god"
+     "jnn-pa.googleapis.com"
       ],
+     "outbound": "wg"
+     },
+     {
+     "rule_set":[
+     "google-gemini"
+     ],
      "outbound": "wg"
     }
     ],
@@ -466,6 +507,13 @@ hy3p=$(sed -n '3p' hy2ip.txt)
     }  
 }
 EOF
+else
+  cat >> config.json <<EOF
+    "final": "direct"
+    }  
+}
+EOF
+fi
 
 if [ -e "$(basename "${FILE_MAP[web]}")" ]; then
    echo "$(basename "${FILE_MAP[web]}")" > sb.txt
@@ -476,7 +524,7 @@ if pgrep -x "$sbb" > /dev/null; then
     green "$sbb The main process has been started"
 else
 for ((i=1; i<=5; i++)); do
-    red "$sbb The main process has not started, Restart... (Number of attempts: $i)"
+    red "$sbb The main process has not started, Restarting... (Number of attempts: $i)"
     pkill -x "$sbb"
     nohup ./"$sbb" run -c config.json >/dev/null 2>&1 &
     sleep 5
@@ -485,12 +533,11 @@ for ((i=1; i<=5; i++)); do
         break
     fi
     if [[ $i -eq 5 ]]; then
-        red "$sbb The main process restarts failed"
+        red "$sbb The main process failed to restart"
     fi
 done
 fi
 fi
-
 if [ -e "$(basename "${FILE_MAP[bot]}")" ]; then
    echo "$(basename "${FILE_MAP[bot]}")" > ag.txt
    agg=$(cat ag.txt)
@@ -498,32 +545,37 @@ if [ -e "$(basename "${FILE_MAP[bot]}")" ]; then
     if [[ $ARGO_AUTH =~ ^[A-Z0-9a-z=]{120,250}$ ]]; then
       #args="tunnel --edge-ip-version auto --no-autoupdate --protocol http2 run --token ${ARGO_AUTH}"
       args="tunnel --no-autoupdate run --token ${ARGO_AUTH}"
-    elif [[ $ARGO_AUTH =~ TunnelSecret ]]; then
-      args="tunnel --edge-ip-version auto --config tunnel.yml run"
     else
      #args="tunnel --edge-ip-version auto --no-autoupdate --protocol http2 --logfile boot.log --loglevel info --url http://localhost:$vmess_port"
      args="tunnel --url http://localhost:$vmess_port --no-autoupdate --logfile boot.log --loglevel info"
-    fi
+    fi    
     nohup ./"$agg" $args >/dev/null 2>&1 &
     sleep 10
 if pgrep -x "$agg" > /dev/null; then
-    green "$agg ArgoThe process has been started"
+    green "$agg ArgoThe process has started"
 else
-    red "$agg ArgoThe process is not started, Restart..."
+for ((i=1; i<=5; i++)); do
+    red "$agg ArgoThe process has not started, Restarting...(Number of attempts: $i)"
     pkill -x "$agg"
     nohup ./"$agg" "${args}" >/dev/null 2>&1 &
     sleep 5
-    purple "$agg ArgoThe process has restarted"
+    if pgrep -x "$agg" > /dev/null; then
+        purple "$agg ArgoThe process has been successfully restarted"
+        break
+    fi
+    if [[ $i -eq 5 ]]; then
+        red "$agg ArgoProcess restart failed，ArgoNode is currently unavailable(It will automatically resume during the maintenance process)，Other nodes are still available"
+    fi
+done
 fi
 fi
 sleep 2
 if ! pgrep -x "$(cat sb.txt)" > /dev/null; then
-red "The main process has not started，Check them one by one according to the following conditions"
-yellow "1、Whether the web is open"
-yellow "2、Delete all ports in the web background，Let the script automatically generate random available port"
-yellow "3、choose5Repossess"
-yellow "4、currentServ00The server exploded？Try again"
-red "5、Try it all above，Brother lying directly，Give it to the process guarantee，Let's look at it again"
+red "The main process has not started，Check one by one according to the following situations"
+yellow "1,choose7Reset the port，Automatically generate random available ports（important）"
+yellow "2,choose8Reset"
+yellow "3,currentServ00The server exploded？Try again later"
+red "4, tried all the above，Brother lie down straight，Leave it to the process to keep alive，See you later"
 sleep 6
 fi
 }
@@ -545,7 +597,7 @@ get_argodomain() {
       sleep 2
     done  
     if [ -z ${argodomain} ]; then
-    argodomain="ArgoTemporary domain names temporarily failed，ArgoNode is not available for the time being"
+    argodomain="ArgoTemporary domain name temporary acquisition failed，ArgoNode is currently unavailable(It will automatically resume during the maintenance process)，Other nodes are still available"
     fi
     echo "$argodomain"
   fi
@@ -554,22 +606,17 @@ get_argodomain() {
 get_links(){
 argodomain=$(get_argodomain)
 echo -e "\e[1;32mArgodomain name：\e[1;35m${argodomain}\e[0m\n"
-ISP=$(curl -sL --max-time 5 https://speed.cloudflare.com/meta | awk -F\" '{print $26}' | sed -e 's/ /_/g' || echo "0")
-get_name() { if [ "$HOSTNAME" = "s1.ct8.pl" ]; then SERVER="CT8"; else SERVER=$(echo "$HOSTNAME" | cut -d '.' -f 1); fi; echo "$SERVER"; }
-NAME="$ISP-$(get_name)"
-rm -rf jh.txt
-vl_link="vless://$UUID@$IP:$vless_port?encryption=none&flow=xtls-rprx-vision&security=reality&sni=$reym&fp=chrome&pbk=$public_key&type=tcp&headerType=none#$NAME-reality"
-echo "$vl_link" >> jh.txt
-vmws_link="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"$NAME-vmess-ws\", \"add\": \"$IP\", \"port\": \"$vmess_port\", \"id\": \"$UUID\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"\", \"path\": \"/$UUID-vm?ed=2048\", \"tls\": \"\", \"sni\": \"\", \"alpn\": \"\", \"fp\": \"\"}" | base64 -w0)"
+vl_link="vless://$UUID@$IP:$vless_port?encryption=none&flow=xtls-rprx-vision&security=reality&sni=$reym&fp=chrome&pbk=$public_key&type=tcp&headerType=none#$snb-reality"
+echo "$vl_link" > jh.txt
+vmws_link="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"$snb-vmess-ws\", \"add\": \"$IP\", \"port\": \"$vmess_port\", \"id\": \"$UUID\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"\", \"path\": \"/$UUID-vm?ed=2048\", \"tls\": \"\", \"sni\": \"\", \"alpn\": \"\", \"fp\": \"\"}" | base64 -w0)"
 echo "$vmws_link" >> jh.txt
-vmatls_link="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"$NAME-vmess-ws-tls-argo\", \"add\": \"icook.hk\", \"port\": \"8443\", \"id\": \"$UUID\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$UUID-vm?ed=2048\", \"tls\": \"tls\", \"sni\": \"$argodomain\", \"alpn\": \"\", \"fp\": \"\"}" | base64 -w0)"
+vmatls_link="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"$snb-vmess-ws-tls-argo\", \"add\": \"icook.hk\", \"port\": \"8443\", \"id\": \"$UUID\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$UUID-vm?ed=2048\", \"tls\": \"tls\", \"sni\": \"$argodomain\", \"alpn\": \"\", \"fp\": \"\"}" | base64 -w0)"
 echo "$vmatls_link" >> jh.txt
-vma_link="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"$NAME-vmess-ws-argo\", \"add\": \"icook.hk\", \"port\": \"8880\", \"id\": \"$UUID\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$UUID-vm?ed=2048\", \"tls\": \"\"}" | base64 -w0)"
+vma_link="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"$snb-vmess-ws-argo\", \"add\": \"icook.hk\", \"port\": \"8880\", \"id\": \"$UUID\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$UUID-vm?ed=2048\", \"tls\": \"\"}" | base64 -w0)"
 echo "$vma_link" >> jh.txt
-hy2_link="hysteria2://$UUID@$IP:$hy2_port?sni=www.bing.com&alpn=h3&insecure=1#$NAME-hy2"
+hy2_link="hysteria2://$UUID@$IP:$hy2_port?sni=www.bing.com&alpn=h3&insecure=1#$snb-hy2"
 echo "$hy2_link" >> jh.txt
-url=$(cat jh.txt 2>/dev/null)
-baseurl=$(echo -e "$url" | base64 -w 0)
+baseurl=$(base64 -w 0 < jh.txt)
 
 cat > sing_box.json <<EOF
 {
@@ -671,16 +718,16 @@ cat > sing_box.json <<EOF
       "default": "auto",
       "outbounds": [
         "auto",
-        "vless-$NAME",
-        "vmess-$NAME",
-        "hy2-$NAME",
-"vmess-tls-argo-$NAME",
-"vmess-argo-$NAME"
+        "vless-$snb",
+        "vmess-$snb",
+        "hy2-$snb",
+"vmess-tls-argo-$snb",
+"vmess-argo-$snb"
       ]
     },
     {
       "type": "vless",
-      "tag": "vless-$NAME",
+      "tag": "vless-$snb",
       "server": "$IP",
       "server_port": $vless_port,
       "uuid": "$UUID",
@@ -703,7 +750,7 @@ cat > sing_box.json <<EOF
 {
             "server": "$IP",
             "server_port": $vmess_port,
-            "tag": "vmess-$NAME",
+            "tag": "vmess-$snb",
             "tls": {
                 "enabled": false,
                 "server_name": "www.bing.com",
@@ -730,7 +777,7 @@ cat > sing_box.json <<EOF
 
     {
         "type": "hysteria2",
-        "tag": "hy2-$NAME",
+        "tag": "hy2-$snb",
         "server": "$IP",
         "server_port": $hy2_port,
         "password": "$UUID",
@@ -746,7 +793,7 @@ cat > sing_box.json <<EOF
 {
             "server": "icook.hk",
             "server_port": 8443,
-            "tag": "vmess-tls-argo-$NAME",
+            "tag": "vmess-tls-argo-$snb",
             "tls": {
                 "enabled": true,
                 "server_name": "$argodomain",
@@ -773,7 +820,7 @@ cat > sing_box.json <<EOF
 {
             "server": "icook.hk",
             "server_port": 8880,
-            "tag": "vmess-argo-$NAME",
+            "tag": "vmess-argo-$snb",
             "tls": {
                 "enabled": false,
                 "server_name": "$argodomain",
@@ -805,11 +852,11 @@ cat > sing_box.json <<EOF
       "tag": "auto",
       "type": "urltest",
       "outbounds": [
-        "vless-$NAME",
-        "vmess-$NAME",
-        "hy2-$NAME",
-"vmess-tls-argo-$NAME",
-"vmess-argo-$NAME"
+        "vless-$snb",
+        "vmess-$snb",
+        "hy2-$snb",
+        "vmess-tls-argo-$snb",
+        "vmess-argo-$snb"
       ],
       "url": "https://www.gstatic.com/generate_204",
       "interval": "1m",
@@ -925,7 +972,7 @@ dns:
       - 240.0.0.0/4
 
 proxies:
-- name: vless-reality-vision-$NAME               
+- name: vless-reality-vision-$snb               
   type: vless
   server: $IP                           
   port: $vless_port                                
@@ -939,7 +986,7 @@ proxies:
     public-key: $public_key                      
   client-fingerprint: chrome                  
 
-- name: vmess-ws-$NAME                         
+- name: vmess-ws-$snb                         
   type: vmess
   server: $IP                       
   port: $vmess_port                                     
@@ -955,7 +1002,7 @@ proxies:
     headers:
       Host: www.bing.com                     
 
-- name: hysteria2-$NAME                            
+- name: hysteria2-$snb                            
   type: hysteria2                                      
   server: $IP                               
   port: $hy2_port                                
@@ -966,7 +1013,7 @@ proxies:
   skip-cert-verify: true
   fast-open: true
 
-- name: vmess-tls-argo-$NAME                         
+- name: vmess-tls-argo-$snb                         
   type: vmess
   server: icook.hk                        
   port: 8443                                     
@@ -982,7 +1029,7 @@ proxies:
     headers:
       Host: $argodomain
 
-- name: vmess-argo-$NAME                         
+- name: vmess-argo-$snb                         
   type: vmess
   server: icook.hk                        
   port: 8880                                     
@@ -1005,11 +1052,11 @@ proxy-groups:
   interval: 300
   strategy: round-robin
   proxies:
-    - vless-reality-vision-$NAME                              
-    - vmess-ws-$NAME
-    - hysteria2-$NAME
-    - vmess-tls-argo-$NAME
-    - vmess-argo-$NAME
+    - vless-reality-vision-$snb                              
+    - vmess-ws-$snb
+    - hysteria2-$snb
+    - vmess-tls-argo-$snb
+    - vmess-argo-$snb
 
 - name: Auto
   type: url-test
@@ -1017,11 +1064,11 @@ proxy-groups:
   interval: 300
   tolerance: 50
   proxies:
-    - vless-reality-vision-$NAME                              
-    - vmess-ws-$NAME
-    - hysteria2-$NAME
-    - vmess-tls-argo-$NAME
-    - vmess-argo-$NAME
+    - vless-reality-vision-$snb                             
+    - vmess-ws-$snb
+    - hysteria2-$snb
+    - vmess-tls-argo-$snb
+    - vmess-argo-$snb
     
 - name: Select
   type: select
@@ -1029,11 +1076,11 @@ proxy-groups:
     - Balance                                         
     - Auto
     - DIRECT
-    - vless-reality-vision-$NAME                              
-    - vmess-ws-$NAME
-    - hysteria2-$NAME
-    - vmess-tls-argo-$NAME
-    - vmess-argo-$NAME
+    - vless-reality-vision-$snb                              
+    - vmess-ws-$snb
+    - hysteria2-$snb
+    - vmess-tls-argo-$snb
+    - vmess-argo-$snb
 rules:
   - GEOIP,LAN,DIRECT
   - GEOIP,CN,DIRECT
@@ -1042,62 +1089,69 @@ rules:
 EOF
 
 sleep 2
-[ -d "$FILE_PATH" ] || mkdir -p "$FILE_PATH"
-echo "$baseurl" > ${FILE_PATH}/${USERNAME}_v2sub.txt
-cat clash_meta.yaml > ${FILE_PATH}/${USERNAME}_clashmeta.txt
-cat sing_box.json > ${FILE_PATH}/${USERNAME}_singbox.txt
-V2rayN_LINK="https://${USERNAME}.serv00.net/${USERNAME}_v2sub.txt"
-Clashmeta_LINK="https://${USERNAME}.serv00.net/${USERNAME}_clashmeta.txt"
-Singbox_LINK="https://${USERNAME}.serv00.net/${USERNAME}_singbox.txt"
+v2sub=$(cat jh.txt)
+echo "$v2sub" > ${FILE_PATH}/${UUID}_v2sub.txt
+cat clash_meta.yaml > ${FILE_PATH}/${UUID}_clashmeta.txt
+cat sing_box.json > ${FILE_PATH}/${UUID}_singbox.txt
+V2rayN_LINK="https://${USERNAME}.serv00.net/${UUID}_v2sub.txt"
+Clashmeta_LINK="https://${USERNAME}.serv00.net/${UUID}_clashmeta.txt"
+Singbox_LINK="https://${USERNAME}.serv00.net/${UUID}_singbox.txt"
 cat > list.txt <<EOF
 =================================================================================================
 
-one、Vless-realityShare the link as follows：
+The current client is usingIP：$IP
+As default nodeIPBeing walled，The following other can be replaced at the client addressIP
+$(dig @8.8.8.8 +time=5 +short "web$nb.serv00.com" | sort -u)
+$(dig @8.8.8.8 +time=5 +short "$HOSTNAME" | sort -u)
+$(dig @8.8.8.8 +time=5 +short "cache$nb.serv00.com" | sort -u)
+-------------------------------------------------------------------------------------------------
+
+one,Vless-realityShare links are as follows：
 $vl_link
 
-Notice：If you entered beforerealityDomain nameCFdomain name，Will activate the following functions：
-Can be applied https://github.com/yonggekkk/Cloudflare_vless_trojan Created in the projectCF vless/trojan node
-1、Proxyip(Band)The information is as follows：
-Method for a whole situation：Set variable name：proxyip    Set variable value：$IP:$vless_port  
-Method 2 single node application：pathChange to：/pyip=$IP:$vless_port
-CFNodeTLSKaifang
-CFNode landingCFThe area of ​​the website is：$IPArea
+Notice：If entered earlierrealityThe domain name isCFdomain name，The following functions will be activated：
+Can be applied in https://github.com/yonggekkk/Cloudflare_vless_trojan Created in a projectCF vless/trojan node
+1,Proxyip(With port)The information is as follows：
+Method one global application：Set variable name：proxyip    Set variable value：$IP:$vless_port  
+Method 2 single node application：pathChange the path to：/pyip=$IP:$vless_port
+CFNode'sTLSCan be turned on or off
+CFThe node lands atCFThe area of ​​the website is：$IPArea
 
-2、Non -standard port anti -inverterIPThe information is as follows：
-Client preferablyIPAddress：$IP，port：$vless_port
-CFNodeTLSMust open
-CFNodes landCFThe area of ​​the website is：$IPArea
+2, non-standard port anti-generationIPThe information is as follows：
+Client preferredIPAddress is：$IP，port：$vless_port
+CFNode'sTLSMust be turned on
+CFNode landed to nonCFThe area of ​​the website is：$IPArea
 
-Note：ifserv00ofIPWall，proxyipStill effective，但用于客户端地址与端口of非标端口反代IPUnavailable
-Note：Maybe a big man will sweepServ00ReverseIPAs a sharingIPLibrary or sale，Please be carefulrealityDomain name setCFdomain name
+Note：ifServ00ofIPBeing walled，proxyipStill effective，But non-standard port anti-generation used for client addresses and portsIPWill not be available
+Note：Maybe some guys can scanServ00Anti-generationIPShare as itsIPLibrary or for sale，Please be carefulrealityThe domain name is set toCFdomain name
 -------------------------------------------------------------------------------------------------
 
 
-two、Vmess-wsShare the link three forms as follows：
+two,Vmess-wsThe three forms of sharing links are as follows：
 
-1、Vmess-wsMaster node sharing links as follows：
-(This node does not support the defaultCDN，If set toCDNReturn source(Domain name)：The client address can be modified and preferred by itselfIP/domain name，7indivual80Change the port port casually，Can be used by the wall！)
+1,Vmess-wsThe main node sharing link is as follows：
+(This node does not support it by defaultCDN，If set toCDNReturn to source(Domain name required)：Client address can be modified by itselfIP/domain name，7indivual80Change the port at will，It can still be used by wall！)
 $vmws_link
 
 Argodomain name：${argodomain}
-IfArgoTemporary domain names are not generated，the following 2 and 3 ofArgoNodes will not be available (OpenArgofixed/Temporary Domain Home Page，showHTTP ERROR 404Explanation of normal available)
+If aboveArgoTemporary domain name not generated，the following 2 and 3 ofArgoThe node will not be available (OpenArgofixed/Temporary domain name page，showHTTP ERROR 404Instructions are available normally)
 
-2、Vmess-ws-tls_ArgoShare the link as follows： 
-(The node isCDNPreferredIPnode，客户端地址可自行修改PreferredIP/domain name，6indivual443Change the port port casually，Can be used by the wall！)
+2,Vmess-ws-tls_ArgoShare links are as follows： 
+(This node isCDNPreferredIPnode，Client address can be modified by itselfIP/domain name，6indivual443Change the port at will，It can still be used by wall！)
 $vmatls_link
 
-3、Vmess-ws_ArgoShare the link as follows：
-(The node isCDNPreferredIPnode，客户端地址可自行修改PreferredIP/domain name，7indivual80Change the port port casually，Can be used by the wall！)
+3,Vmess-ws_ArgoShare links are as follows：
+(This node isCDNPreferredIPnode，Client address can be modified by itselfIP/domain name，7indivual80Change the port at will，It can still be used by wall！)
 $vma_link
 -------------------------------------------------------------------------------------------------
 
 
-three、HY2Share the link as follows：
+three,HY2Share links are as follows：
 $hy2_link
 -------------------------------------------------------------------------------------------------
 
 
-Four、The convergence of the above five nodes sharing links are as follows：
+4. The aggregation of the above five nodes is as follows：
 $V2rayN_LINK
 
 The above five nodes aggregate universal sharing code：
@@ -1105,7 +1159,7 @@ $baseurl
 -------------------------------------------------------------------------------------------------
 
 
-five、CheckSing-boxandClash-metaSubscribe to configuration file，Please enter the main menu and select4
+5. Check itSing-boxandClash-metaSubscription configuration file，Please enter the main menu to select4
 
 Clash-metaSubscribe to share link：
 $Clashmeta_LINK
@@ -1124,34 +1178,35 @@ rm -rf sb.log core tunnel.yml tunnel.json fake_useragent_0.2.0.json
 
 showlist(){
 if [[ -e $WORKDIR/list.txt ]]; then
-green "View node andproxyip/Non -standard port anti -inverteripinformation"
+green "View nodes, subscriptions, anti-generationIP,ProxyIPWait for information！Updating，Please wait……"
+sleep 3
 cat $WORKDIR/list.txt
 else
-red "Not installedsing-box" && exit
+red "Script not installed，Please select1Carry out installation" && exit
 fi
 }
 
 showsbclash(){
 if [[ -e $WORKDIR/sing_box.json ]]; then
-green "Sing_boxThe configuration file is as follows，Can be uploaded to the subscribing client for use："
-yellow "inArgoNodeCDNPreferredIPnode，server地址可自行修改PreferredIP/domain name，Can be used by the wall！"
+green "CheckclashandsingboxConfiguration plaintext！Updating，Please wait……"
+sleep 3
+green "Sing_boxThe configuration file is as follows，Can be uploaded to the subscription client for use："
+yellow "inArgoThe node isCDNPreferredIPnode，serverThe address can be modified by yourselfIP/domain name，It can still be used by wall！"
 sleep 2
 cat $WORKDIR/sing_box.json 
 echo
 echo
-green "Clash_metaThe configuration file is as follows，Can be uploaded to the subscribing client for use："
-yellow "inArgoNodeCDNPreferredIPnode，server地址可自行修改PreferredIP/domain name，Can be used by the wall！"
+green "Clash_metaThe configuration file is as follows，Can be uploaded to the subscription client for use："
+yellow "inArgoThe node isCDNPreferredIPnode，serverThe address can be modified by yourselfIP/domain name，It can still be used by wall！"
 sleep 2
 cat $WORKDIR/clash_meta.yaml
 echo
 else
-red "Not installedsing-box" && exit
+red "Script not installed，Please select1Carry out installation" && exit
 fi
 }
 
 servkeep() {
-#green "Start installationCronProcess guarantee"
-curl -sSL https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/serv%201/serv00keep.sh -o serv00keep.sh && chmod +x serv00keep.sh
 sed -i '' -e "14s|''|'$UUID'|" serv00keep.sh
 sed -i '' -e "17s|''|'$vless_port'|" serv00keep.sh
 sed -i '' -e "18s|''|'$vmess_port'|" serv00keep.sh
@@ -1162,6 +1217,19 @@ if [ ! -f "$WORKDIR/boot.log" ]; then
 sed -i '' -e "15s|''|'${ARGO_DOMAIN}'|" serv00keep.sh
 sed -i '' -e "16s|''|'${ARGO_AUTH}'|" serv00keep.sh
 fi
+echo '#!/bin/bash
+red() { echo -e "\e[1;91m$1\033[0m"; }
+green() { echo -e "\e[1;32m$1\033[0m"; }
+yellow() { echo -e "\e[1;33m$1\033[0m"; }
+purple() { echo -e "\e[1;35m$1\033[0m"; }
+USERNAME=$(whoami | tr '\''[:upper:]'\'' '\''[:lower:]'\'')
+WORKDIR="${HOME}/domains/${USERNAME}.serv00.net/logs"
+snb=$(hostname | awk -F '\''.'\'' '\''{print $1}'\'')
+' > webport.sh
+declare -f resallport >> webport.sh
+declare -f check_port >> webport.sh
+echo 'resallport' >> webport.sh
+chmod +x webport.sh
 #if ! crontab -l 2>/dev/null | grep -q 'serv00keep'; then
 #if [ -f "$WORKDIR/boot.log" ] || grep -q "trycloudflare.com" "$WORKDIR/boot.log" 2>/dev/null; then
 #check_process="! ps aux | grep '[c]onfig' > /dev/null || ! ps aux | grep [l]ocalhost > /dev/null"
@@ -1170,16 +1238,12 @@ fi
 #fi
 #(crontab -l 2>/dev/null; echo "*/10 * * * * if $check_process; then /bin/bash serv00keep.sh; fi") | crontab -
 #fi
-#green "Installation，Default10Execute once in minutes，run crontab -e You can modify your own reserved execution interval" && sleep 2
+#green "Installation completed，Default per10Execute once in minutes，run crontab -e Can modify the keep-alive execution interval by yourself" && sleep 2
 #echo
-green "Start installing the webpage process to keep"
-keep_path="$HOME/domains/${USERNAME}.${USERNAME}.serv00.net/public_nodejs"
-[ -d "$keep_path" ] || mkdir -p "$keep_path"
-curl -sL https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/app.js -o "$keep_path"/app.js
-sed -i '' "28s/name/$USERNAME/g" "$keep_path"/app.js
-devil www del ${USERNAME}.${USERNAME}.serv00.net > /dev/null 2>&1
+green "Start installing the multi-function homepage，Please wait……"
+devil www del ${snb}.${USERNAME}.serv00.net > /dev/null 2>&1
 devil www add ${USERNAME}.serv00.net php > /dev/null 2>&1
-devil www add ${USERNAME}.${USERNAME}.serv00.net nodejs /usr/local/bin/node18 > /dev/null 2>&1
+devil www add ${snb}.${USERNAME}.serv00.net nodejs /usr/local/bin/node18 > /dev/null 2>&1
 ln -fs /usr/local/bin/node18 ~/bin/node > /dev/null 2>&1
 ln -fs /usr/local/bin/npm18 ~/bin/npm > /dev/null 2>&1
 mkdir -p ~/.npm-global
@@ -1188,10 +1252,10 @@ echo 'export PATH=~/.npm-global/bin:~/bin:$PATH' >> $HOME/.bash_profile && sourc
 rm -rf $HOME/.npmrc > /dev/null 2>&1
 cd "$keep_path"
 npm install basic-auth express dotenv axios --silent > /dev/null 2>&1
-rm $HOME/domains/${USERNAME}.${USERNAME}.serv00.net/public_nodejs/public/index.html > /dev/null 2>&1
-devil www restart ${USERNAME}.${USERNAME}.serv00.net
-rm -rf $HOME/domains/${USERNAME}.${USERNAME}.serv00.net/logs/*
-green "Installation，Keep the webpage：http://${USERNAME}.${USERNAME}.serv00.net/up ，Open，You can default3Auto -keep in minutes" && sleep 2
+rm $HOME/domains/${snb}.${USERNAME}.serv00.net/public_nodejs/public/index.html > /dev/null 2>&1
+devil www restart ${snb}.${USERNAME}.serv00.net
+curl -sk "http://${snb}.${USERNAME}.serv00.net/up" > /dev/null 2>&1
+green "Installation completed，Multifunction homepage address：http://${snb}.${USERNAME}.serv00.net" && sleep 2
 }
 
 okip(){
@@ -1215,81 +1279,150 @@ okip(){
     echo "$IP"
     }
 
-#Main menu
+fastrun(){
+if [[ -e $WORKDIR/config.json ]]; then
+  COMMAND="sb"
+  SCRIPT_PATH="$HOME/bin/$COMMAND"
+  mkdir -p "$HOME/bin"
+  curl -Ls https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/serv00.sh > "$SCRIPT_PATH"
+  chmod +x "$SCRIPT_PATH"
+  if [[ ":$PATH:" != *":$HOME/bin:"* ]]; then
+      echo "export PATH=\"\$HOME/bin:\$PATH\"" >> "$HOME/.bashrc"
+      source "$HOME/.bashrc"
+  fi
+curl -sL https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/app.js -o "$keep_path"/app.js
+sed -i '' "15s/name/$snb/g" "$keep_path"/app.js
+sed -i '' "60s/key/$UUID/g" "$keep_path"/app.js
+sed -i '' "75s/name/$USERNAME/g" "$keep_path"/app.js
+sed -i '' "75s/where/$snb/g" "$keep_path"/app.js
+curl -sSL https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/serv00keep.sh -o serv00keep.sh && chmod +x serv00keep.sh
+curl -sL https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/index.html -o "$FILE_PATH"/index.html
+curl -sL https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/sversion | awk -F "Update content" '{print $1}' | head -n 1 > $WORKDIR/v
+else
+red "Script not installed，Please select1Carry out installation" && exit
+fi
+}
+
+resservsb(){
+if [[ -e $WORKDIR/config.json ]]; then
+yellow "Restarting……Please wait……"
+cd $WORKDIR
+ps aux | grep '[r]un -c con' | awk '{print $2}' | xargs -r kill -9 > /dev/null 2>&1
+sbb=$(cat sb.txt)
+nohup ./"$sbb" run -c config.json >/dev/null 2>&1 &
+sleep 1
+curl -sk "http://${snb}.${USERNAME}.serv00.net/up" > /dev/null 2>&1
+sleep 5
+if pgrep -x "$sbb" > /dev/null; then
+green "$sbb The main process restarted successfully"
+else
+red "$sbb The main process failed to restart"
+fi
+cd
+else
+red "Script not installed，Please select1Carry out installation" && exit
+fi
+}
+
 menu() {
    clear
    echo "============================================================"
-   purple "ModifyServ00|ct8Old kingsing-boxInstallation script"
-   purple "Reprinted, please come from Pharaoh，Do not abuse"
-   green "Cricket brotherGithubproject  ：github.com/yonggekkk"
-   green "Cricket brotherBloggerblog ：ygkkk.blogspot.com"
-   green "Cricket brotherYouTubeChannel ：www.youtube.com/@ygkkk"
-   green "One -click three protocol coexist：vless-reality、Vmess-ws(Argo)、hysteria2"
-   green "Current script version：V25.1.27  Shortcut：bash serv00.sh"
+   green "Brother YongGithubproject  ：github.com/yonggekkk"
+   green "Brother YongBloggerblog ：ygkkk.blogspot.com"
+   green "Brother YongYouTubeChannel ：www.youtube.com/@ygkkk"
+   green "Serv00-sb-ygThree agreements coexist：vless-reality,Vmess-ws(Argo),Hy2"
+   green "Script shortcuts：sb"
    echo   "============================================================"
-   green  "1. Installsing-box"
+   green  "1. One-click installation Serv00-sb-yg"
    echo   "------------------------------------------------------------"
-   red    "2. uninstallsing-box"
+   red    "2. Uninstall and delete Serv00-sb-yg"
    echo   "------------------------------------------------------------"
-   green  "3. Check：Each node sharing/sing-boxandclash-metaSubscription link/CFnodeproxyip"
+   green  "3. Restart the main process (Repair nodes)"
    echo   "------------------------------------------------------------"
-   green  "4. Check：sing-boxandclash-metaConfiguration file"
+   green  "4. Update script"
    echo   "------------------------------------------------------------"
-   yellow "5. Reset and clean up all service processes(System initialization)"
+   green  "5. View sharing of each node/sing-boxandclashSubscription link/Anti-generationIP/ProxyIP"
+   echo   "------------------------------------------------------------"
+   green  "6. Checksing-boxandclashConfiguration File"
+   echo   "------------------------------------------------------------"
+   yellow "7. Reset and randomly generate new ports (The script can be executed before and after installation)"
+   echo   "------------------------------------------------------------"
+   yellow "8. Clean up all service processes and files (System initialization)"
    echo   "------------------------------------------------------------"
    red    "0. Exit script"
    echo   "============================================================"
-nb=$(echo "$HOSTNAME" | cut -d '.' -f 1 | tr -d 's')
 ym=("$HOSTNAME" "cache$nb.serv00.com" "web$nb.serv00.com")
-rm -rf $WORKDIR/ip.txt $WORKDIR/hy2ip.txt
-for ip in "${ym[@]}"; do
-dig @8.8.8.8 +time=2 +short $ip >> $WORKDIR/hy2ip.txt
+rm -rf ip.txt
+for host in "${ym[@]}"; do
+response=$(curl -sL --connect-timeout 5 --max-time 7 "https://ss.fkj.pp.ua/api/getip?host=$host")
+if [[ "$response" =~ (unknown|not|error) ]]; then
+dig @8.8.8.8 +time=5 +short $host | sort -u >> $WORKDIR/ip.txt
 sleep 1  
-done
-for ym in "${ym[@]}"; do
-response=$(curl -sL --connect-timeout 5 --max-time 7 "https://ss.botai.us.kg/api/getip?host=$ym")
-if [[ -z "$response" || "$response" == *unknown* ]]; then
-for ip in "${ym[@]}"; do
-dig @8.8.8.8 +time=2 +short $ip >> $WORKDIR/ip.txt
-sleep 1  
-done
 else
-echo "$response" | while IFS='|' read -r ip status; do
+while IFS='|' read -r ip status; do
 if [[ $status == "Accessible" ]]; then
-echo "$ip: Available"  >> $WORKDIR/ip.txt
+echo "$ip: Available" >> $WORKDIR/ip.txt
 else
-echo "$ip: Wall (ArgoandCDNReturn node、proxyipStill effective)"  >> $WORKDIR/ip.txt
+echo "$ip: Being walled (ArgoandCDNReturn to source node,proxyipStill effective)" >> $WORKDIR/ip.txt
 fi	
-done
+done <<< "$response"
 fi
 done
-snb=$(hostname | awk -F '.' '{print $1}')
-green "Serv00Server name：$snb"
-green "Current optionalIPas follows："
-cat $WORKDIR/ip.txt
+if [[ ! "$response" =~ (unknown|not|error) ]]; then
+grep ':' $WORKDIR/ip.txt | sort -u -o $WORKDIR/ip.txt
+fi
+green "Serv00Server name：${snb}"
 echo
-if [[ -e $WORKDIR/list.txt ]]; then
-green "Installedsing-box"
-ps aux | grep '[c]onfig' > /dev/null && green "The main process is running normally" || yellow "Main process startup…………1After minutes, enter the script again to view"
-if [ -f "$WORKDIR/boot.log" ] && grep -q "trycloudflare.com" "$WORKDIR/boot.log" 2>/dev/null && ps aux | grep '[t]unnel --url' > /dev/null; then
+green "Currently availableIPas follows："
+cat $WORKDIR/ip.txt
+if [[ -e $WORKDIR/config.json ]]; then
+echo "As default nodeIPBeing walled，You can change any of the above at the client address to display the available onesIP"
+fi
+echo
+portlist=$(devil port list | grep -E '^[0-9]+[[:space:]]+[a-zA-Z]+' | sed 's/^[[:space:]]*//')
+if [[ -n $portlist ]]; then
+green "The configured ports are as follows："
+echo -e "$portlist"
+else
+yellow "No port is set"
+fi
+echo
+insV=$(cat $WORKDIR/v 2>/dev/null)
+latestV=$(curl -sL https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/sversion | awk -F "Update content" '{print $1}' | head -n 1)
+if [ -f $WORKDIR/v ]; then
+if [ "$insV" = "$latestV" ]; then
+echo -e "current Serv00-sb-yg The latest version of the script：${purple}${insV}${re} (Installed)"
+else
+echo -e "current Serv00-sb-yg Script version number：${purple}${insV}${re}"
+echo -e "Latest detected Serv00-sb-yg Script version number：${yellow}${latestV}${re} (Available4Make updates)"
+echo -e "${yellow}$(curl -sL https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/sversion)${re}"
+fi
+echo -e "========================================================="
+sbb=$(cat $WORKDIR/sb.txt 2>/dev/null)
+showuuid=$(jq -r '.inbounds[0].users[0].password' $WORKDIR/config.json 2>/dev/null)
+if pgrep -x "$sbb" > /dev/null; then
+green "Sing-boxThe main process is running normally"
+green "UUIDpassword：$showuuid" 
+else
+yellow "Sing-boxThe main process failed to start，Try running the page to keep alive, restart, and reset the port"
+fi
+if [ -f "$WORKDIR/boot.log" ] && grep -q "trycloudflare.com" "$WORKDIR/boot.log"; then
 argosl=$(cat "$WORKDIR/boot.log" 2>/dev/null | grep -a trycloudflare.com | awk 'NR==2{print}' | awk -F// '{print $2}' | awk '{print $1}')
 checkhttp=$(curl -o /dev/null -s -w "%{http_code}\n" "https://$argosl")
-[ "$checkhttp" -eq 404 ] && check="Valid domain name" || check="The domain name may be invalid"
-green "currentArgoTemporary domain name：$argosl  $check"
+[ "$checkhttp" -eq 404 ] && check="Domain name valid" || check="Domain name may be invalid"
+green "ArgoTemporary domain name：$argosl  $check"
 fi
-if [ -f "$WORKDIR/boot.log" ] && ! ps aux | grep '[t]unnel --url' > /dev/null; then
-yellow "currentArgoTemporary domain names do not exist for the time being，The background will continue to generate effective temporary domain names，You can enter the script again later to view"
+if [ -f "$WORKDIR/boot.log" ] && ! grep -q "trycloudflare.com" "$WORKDIR/boot.log"; then
+yellow "ArgoTemporary domain names do not exist yet，It will automatically resume during the maintenance process"
 fi
-if ps aux | grep '[t]unnel --no' > /dev/null; then
+if [ ! -f "$WORKDIR/boot.log" ]; then
 argogd=$(cat $WORKDIR/gdym.log 2>/dev/null)
 checkhttp=$(curl --max-time 2 -o /dev/null -s -w "%{http_code}\n" "https://$argogd")
-[ "$checkhttp" -eq 404 ] && check="Valid domain name" || check="The domain name may fail"
-green "currentArgoFixed domain name：$argogd $check"
+[ "$checkhttp" -eq 404 ] && check="Domain name valid" || check="Domain name may be invalid"
+green "ArgoFixed domain name：$argogd $check"
 fi
-if [ ! -f "$WORKDIR/boot.log" ] && ! ps aux | grep '[t]unnel --no' > /dev/null; then
-yellow "currentArgoFixed domain name：$(cat $WORKDIR/gdym.log 2>/dev/null)，Enable failure，Please check whether the related parameters are input errors"
-fi
-green "Keep the webpage：http://${USERNAME}.${USERNAME}.serv00.net/up ，Open，You can default3Auto -keep in minutes"
+green "The multi-function homepage is as follows (Support keep alive, restart, reset ports, and node query)"
+purple "http://${snb}.${USERNAME}.serv00.net"
 #if ! crontab -l 2>/dev/null | grep -q 'serv00keep'; then
 #if [ -f "$WORKDIR/boot.log" ] || grep -q "trycloudflare.com" "$WORKDIR/boot.log" 2>/dev/null; then
 #check_process="! ps aux | grep '[c]onfig' > /dev/null || ! ps aux | grep [l]ocalhost > /dev/null"
@@ -1297,27 +1430,31 @@ green "Keep the webpage：http://${USERNAME}.${USERNAME}.serv00.net/up ，Open�
 #check_process="! ps aux | grep '[c]onfig' > /dev/null || ! ps aux | grep [t]oken > /dev/null"
 #fi
 #(crontab -l 2>/dev/null; echo "*/2 * * * * if $check_process; then /bin/bash serv00keep.sh; fi") | crontab -
-#purple "DiscoverServ00Start a big move，CronRepair was reset and cleared"
-#purple "at presentCronRepair has been repaired。Open http://${USERNAME}.${USERNAME}.serv00.net/up You can also keep in real time"
-#purple "Primary process andArgoProcess startup…………1After minutes, enter the script again to view"
+#purple "DiscoverServ00Take the ultimate move，CronKeep alive has been reset and cleared"
+#purple "at presentCronKeepaway has been repaired successfully. Open http://${USERNAME}.${USERNAME}.serv00.net/up Can also be kept alive in real time"
+#purple "Main process andArgoProcess is starting…………1You can enter the script again in minutes"
 #else
-#green "CronRepair and run normally。Open http://${USERNAME}.${USERNAME}.serv00.net/up You can also keep in real time"
+#green "CronKeep alive and run normally. Open http://${USERNAME}.${USERNAME}.serv00.net/up Can also be kept alive in real time"
 #fi
 else
-red "Not installedsing-box，Choose 1 Installation" 
+echo -e "current Serv00-sb-yg Script version number：${purple}${latestV}${re}"
+yellow "Not installed Serv00-sb-yg script！Please select 1 Install"
 fi
-curl -sSL https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/serv%201/serv00.sh -o serv00.sh && chmod +x serv00.sh
-   echo   "========================================================="
-   reading "Please enter the selection【0-5】: " choice
-   echo ""
+#curl -sSL https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/serv00.sh -o serv00.sh && chmod +x serv00.sh
+   echo -e "========================================================="
+   reading "Please enter the selection0-8: " choice
+   echo
     case "${choice}" in
         1) install_singbox ;;
         2) uninstall_singbox ;; 
-        3) showlist ;;
-	4) showsbclash ;;
-        5) kill_all_tasks ;;
+	3) resservsb ;;
+	4) fastrun && green "The script has been updated successfully" && sleep 2 && sb ;; 
+        5) showlist ;;
+	6) showsbclash ;;
+        7) resallport ;;
+        8) kill_all_tasks ;;
 	0) exit 0 ;;
-        *) red "Invalid option，Please enter 0 arrive 5" ;;
+        *) red "Invalid option，Please enter 0 arrive 8" ;;
     esac
 }
 menu

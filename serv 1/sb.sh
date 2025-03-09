@@ -12,7 +12,7 @@ yellow(){ echo -e "\033[33m\033[01m$1\033[0m";}
 blue(){ echo -e "\033[36m\033[01m$1\033[0m";}
 white(){ echo -e "\033[37m\033[01m$1\033[0m";}
 readp(){ read -p "$(yellow "$1")" $2;}
-[[ $EUID -ne 0 ]] && yellow "PleaserootMode run script" && exit
+[[ $EUID -ne 0 ]] && yellow "PleaserootMode Run script" && exit
 #[[ -e /etc/hosts ]] && grep -qE '^ *172.65.251.78 gitlab.com' /etc/hosts || echo -e '\n172.65.251.78 gitlab.com' >> /etc/hosts
 if [[ -f /etc/redhat-release ]]; then
 release="Centos"
@@ -31,13 +31,15 @@ release="Ubuntu"
 elif cat /proc/version | grep -q -E -i "centos|red hat|redhat"; then
 release="Centos"
 else 
-red "The script does not support the current system，Please select and useUbuntu,Debian,Centossystem。" && exit
+red "The script does not support the current system，Please select UseUbuntu,Debian,Centossystem." && exit
 fi
+export sbfiles="/etc/s-box/sb10.json /etc/s-box/sb11.json /etc/s-box/sb.json"
+export sbnh=$(/etc/s-box/sing-box version 2>/dev/null | awk '/version/{print $NF}' | cut -d '.' -f 1,2)
 vsid=$(grep -i version_id /etc/os-release | cut -d \" -f2 | cut -d . -f1)
 op=$(cat /etc/redhat-release 2>/dev/null || cat /etc/os-release 2>/dev/null | grep -i pretty_name | cut -d \" -f2)
 #if [[ $(echo "$op" | grep -i -E "arch|alpine") ]]; then
 if [[ $(echo "$op" | grep -i -E "arch") ]]; then
-red "The script does not support the current $op system，Please select and useUbuntu,Debian,Centossystem。" && exit
+red "The script does not support the current $op system，Please select UseUbuntu,Debian,Centossystem." && exit
 fi
 version=$(uname -r | cut -d "-" -f1)
 [[ -z $(systemd-detect-virt 2>/dev/null) ]] && vi=$(virt-what 2>/dev/null) || vi=$(systemd-detect-virt 2>/dev/null)
@@ -45,7 +47,7 @@ case $(uname -m) in
 armv7l) cpu=armv7;;
 aarch64) cpu=arm64;;
 x86_64) cpu=amd64;;
-*) red "The current script is not supported$(uname -m)Architecture" && exit;;
+*) red "Currently the script is not supported$(uname -m)Architecture" && exit;;
 esac
 #bit=$(uname -m)
 #if [[ $bit = "aarch64" ]]; then
@@ -54,7 +56,7 @@ esac
 #amdv=$(cat /proc/cpuinfo | grep flags | head -n 1 | cut -d: -f2)
 #[[ $amdv == *avx2* && $amdv == *f16c* ]] && cpu="amd64v3" || cpu="amd64"
 #else
-#red "The current script is not supported $bit Architecture" && exit
+#red "Currently the script is not supported $bit Architecture" && exit
 #fi
 if [[ -n $(sysctl net.ipv4.tcp_congestion_control 2>/dev/null | awk -F ' ' '{print $3}') ]]; then
 bbr=`sysctl net.ipv4.tcp_congestion_control | awk -F ' ' '{print $3}'`
@@ -66,7 +68,7 @@ fi
 hostname=$(hostname)
 
 if [ ! -f sbyg_update ]; then
-green "First installationSing-box-ygThe necessary dependencies of script……"
+green "First installationSing-box-ygScript necessary dependencies……"
 if [[ x"${release}" == x"alpine" ]]; then
 apk update
 apk add wget curl tar jq tzdata openssl expect git socat iproute2 iptables
@@ -125,16 +127,16 @@ fi
 
 if [[ $vi = openvz ]]; then
 TUN=$(cat /dev/net/tun 2>&1)
-if [[ ! $TUN =~ 'in bad state' ]] && [[ ! $TUN =~ 'In an error' ]] && [[ ! $TUN =~ 'Die Dateizugriffsnummer ist in schlechter Verfassung' ]]; then 
-red "Detecting unscrupulousTUN，Try to addTUNsupport" && sleep 4
+if [[ ! $TUN =~ 'in bad state' ]] && [[ ! $TUN =~ 'In an error state' ]] && [[ ! $TUN =~ 'Die Dateizugriffsnummer ist in schlechter Verfassung' ]]; then 
+red "Not enabled detectedTUN，Try adding nowTUNsupport" && sleep 4
 cd /dev && mkdir net && mknod net/tun c 10 200 && chmod 0666 net/tun
 TUN=$(cat /dev/net/tun 2>&1)
-if [[ ! $TUN =~ 'in bad state' ]] && [[ ! $TUN =~ 'In an error' ]] && [[ ! $TUN =~ 'Die Dateizugriffsnummer ist in schlechter Verfassung' ]]; then 
-green "Add toTUNSupport failure，Suggestion andVPSManufacturer communication or background settings open" && exit
+if [[ ! $TUN =~ 'in bad state' ]] && [[ ! $TUN =~ 'In an error state' ]] && [[ ! $TUN =~ 'Die Dateizugriffsnummer ist in schlechter Verfassung' ]]; then 
+green "Add toTUNSupport failed，Suggestions andVPSManufacturer communication or background settings are enabled" && exit
 else
 echo '#!/bin/bash' > /root/tun.sh && echo 'cd /dev && mkdir net && mknod net/tun c 10 200 && chmod 0666 net/tun' >> /root/tun.sh && chmod +x /root/tun.sh
 grep -qE "^ *@reboot root bash /root/tun.sh >/dev/null 2>&1" /etc/crontab || echo "@reboot root bash /root/tun.sh >/dev/null 2>&1" >> /etc/crontab
-green "TUNThe guardian function has been started"
+green "TUNThe guard function has been activated"
 fi
 fi
 fi
@@ -154,14 +156,13 @@ v4orv6(){
 if [ -z $(curl -s4m5 icanhazip.com -k) ]; then
 echo
 red "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-yellow "Detect pureIPV6 VPS，Add toDNS64"
+yellow "Detected pureIPV6 VPS，Add toDNS64"
 echo -e "nameserver 2a00:1098:2b::1\nnameserver 2a00:1098:2c::1\nnameserver 2a01:4f8:c2c:123f::1" > /etc/resolv.conf
 endip=2606:4700:d0::a29f:c101
 ipv=prefer_ipv6
 else
 endip=162.159.192.1
 ipv=prefer_ipv4
-#echo '4' > /etc/s-box/i
 fi
 }
 warpcheck
@@ -202,26 +203,32 @@ service apache2 stop >/dev/null 2>&1
 systemctl disable apache2 >/dev/null 2>&1
 fi
 sleep 1
-green "Execute the open port，Turn off the firewall"
+green "Execute open port，Close the firewall"
 }
 
 openyn(){
 red "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-readp "Whether an open port，Close the firewall？\n1、yes，implement (Enter the default)\n2、no，jump over！Handle\nChoose【1-2】：" action
+readp "Whether the port is open，Turn off the firewall？\n1,yes，implement (Enter default)\n2,no，jump over！Self-processing\nPlease select [1-2：" action
 if [[ -z $action ]] || [[ "$action" = "1" ]]; then
 close
 elif [[ "$action" = "2" ]]; then
 echo
 else
-red "Enter an error,Please choose again" && openyn
+red "Error in input,Please select again" && openyn
 fi
 }
 
 inssb(){
 red "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-green "one、Start download and installSing-boxFormal version1.10Series kernel……Please wait"
-echo
+green "Which kernel version to use？at present：1.10Series official version kernel supportgeositeDiversion，1.10The latest kernel after the series is not supportedgeositeDiversion"
+yellow "1：use1.10Series official version kernel (Enter default)"
+yellow "2：use1.10The latest official version of the kernel after the series"
+readp "Please select [1-2：" menu
+if [ -z "$menu" ] || [ "$menu" = "1" ] ; then
 sbcore=$(curl -Ls https://data.jsdelivr.com/v1/package/gh/SagerNet/sing-box | grep -Eo '"1\.10[0-9\.]*",'  | sed -n 1p | tr -d '",')
+else
+sbcore=$(curl -Ls https://data.jsdelivr.com/v1/package/gh/SagerNet/sing-box | grep -Eo '"[0-9.]+",' | sed -n 1p | tr -d '",')
+fi
 sbname="sing-box-$sbcore-linux-$cpu"
 curl -L -o /etc/s-box/sing-box.tar.gz  -# --retry 2 https://github.com/SagerNet/sing-box/releases/download/v$sbcore/$sbname.tar.gz
 if [[ -f '/etc/s-box/sing-box.tar.gz' ]]; then
@@ -231,12 +238,12 @@ rm -rf /etc/s-box/{sing-box.tar.gz,$sbname}
 if [[ -f '/etc/s-box/sing-box' ]]; then
 chown root:root /etc/s-box/sing-box
 chmod +x /etc/s-box/sing-box
-blue "Successful installation Sing-box Kernel version：$(/etc/s-box/sing-box version | awk '/version/{print $NF}')"
+blue "Installed successfully Sing-box Kernel version：$(/etc/s-box/sing-box version | awk '/version/{print $NF}')"
 else
-red "download Sing-box Kernel incomplete，Failed to install，Please run and install it again" && exit
+red "download Sing-box The kernel is incomplete，Installation failed，Please run and install again" && exit
 fi
 else
-red "download Sing-box Kernel failure，Please run and install it again，TestVPSCan the network be accessedGithub" && exit
+red "download Sing-box Kernel failure，Please run and install again，And testVPSIs the network accessible?Github" && exit
 fi
 }
 
@@ -244,8 +251,8 @@ inscertificate(){
 ymzs(){
 ym_vl_re=www.yahoo.com
 echo
-blue "Vless-realityofSNIDomain name silent www.yahoo.com"
-blue "Vmess-wsWill openTLS，Hysteria-2、Tuic-v5Will use $(cat /root/ygkkkca/ca.log 2>/dev/null) Certificate，Open upSNICertificate验证"
+blue "Vless-realityofSNIThe domain name defaults to www.yahoo.com"
+blue "Vmess-wsWill be turned onTLS，Hysteria-2,Tuic-v5Will use $(cat /root/ygkkkca/ca.log 2>/dev/null) Certificate，And turn onSNICertificate verification"
 tlsyn=true
 ym_vm_ws=$(cat /root/ygkkkca/ca.log 2>/dev/null)
 certificatec_vmess_ws='/root/ygkkkca/cert.crt'
@@ -259,8 +266,8 @@ certificatep_tuic='/root/ygkkkca/private.key'
 zqzs(){
 ym_vl_re=www.yahoo.com
 echo
-blue "Vless-realityofSNIDomain name silent www.yahoo.com"
-blue "Vmess-wsCloseTLS，Hysteria-2、Tuic-v5Will usebingSelf -signed certificate，CloseSNICertification verification"
+blue "Vless-realityofSNIThe domain name defaults to www.yahoo.com"
+blue "Vmess-wsWill closeTLS，Hysteria-2,Tuic-v5Will usebingSelf-visa certificate，And closeSNICertificate verification"
 tlsyn=false
 ym_vm_ws=www.bing.com
 certificatec_vmess_ws='/etc/s-box/cert.pem'
@@ -272,40 +279,40 @@ certificatep_tuic='/etc/s-box/private.key'
 }
 
 red "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-green "two、Generate and set up related certificates"
+green "2. Generate and set up relevant certificates"
 echo
-blue "Automatically generatebingSelf -signed certificate……" && sleep 2
+blue "Automatically generatedbingSelf-signed certificate……" && sleep 2
 openssl ecparam -genkey -name prime256v1 -out /etc/s-box/private.key
 openssl req -new -x509 -days 36500 -key /etc/s-box/private.key -out /etc/s-box/cert.pem -subj "/CN=www.bing.com"
 echo
 if [[ -f /etc/s-box/cert.pem ]]; then
-blue "generatebingSelf -signed certificate success"
+blue "generatebingSelf-signed certificate successful"
 else
-red "generatebingSelf -signed certificate failure" && exit
+red "generatebingSelf-signed certificate failed" && exit
 fi
 echo
 if [[ -f /root/ygkkkca/cert.crt && -f /root/ygkkkca/private.key && -s /root/ygkkkca/cert.crt && -s /root/ygkkkca/private.key ]]; then
-yellow "Test，Previously usedAcme-ygScript applicationAcmeDomain name certificate：$(cat /root/ygkkkca/ca.log) "
-green "Use $(cat /root/ygkkkca/ca.log) Domain name certificate？"
-yellow "1：no！Use self -signed certificate (Enter the default)"
+yellow "After testing，Used beforeAcme-ygScript appliedAcmeDomain name certificate：$(cat /root/ygkkkca/ca.log) "
+green "Whether to use it $(cat /root/ygkkkca/ca.log) Domain name certificate？"
+yellow "1：no！Use self-signed certificate (Enter default)"
 yellow "2：yes！use $(cat /root/ygkkkca/ca.log) Domain name certificate"
-readp "Choose【1-2】：" menu
+readp "Please select [1-2：" menu
 if [ -z "$menu" ] || [ "$menu" = "1" ] ; then
 zqzs
 else
 ymzs
 fi
 else
-green "If you have the domain name that has been parsed，Do you apply for aAcmeDomain name certificate？"
-yellow "1：no！Continue to use the certificate of self -signed (Enter the default)"
-yellow "2：yes！useAcme-ygScript applicationAcmeCertificate (Support routine80Port mode andDns APImodel)"
-readp "Choose【1-2】：" menu
+green "If you have a domain name that has been resolved，Apply for oneAcmeDomain name certificate？"
+yellow "1：no！Continue to use self-signed certificates (Enter default)"
+yellow "2：yes！useAcme-ygScript applicationAcmeCertificate (Support for general80Port mode andDns APImodel)"
+readp "Please select [1-2：" menu
 if [ -z "$menu" ] || [ "$menu" = "1" ] ; then
 zqzs
 else
 bash <(curl -Ls https://gitlab.com/rwkgyg/acme-script/raw/main/acme.sh)
 if [[ ! -f /root/ygkkkca/cert.crt && ! -f /root/ygkkkca/private.key && ! -s /root/ygkkkca/cert.crt && ! -s /root/ygkkkca/private.key ]]; then
-red "AcmeCertificate application failed，Continue to use the self -signed certificate" 
+red "AcmeCertificate application failed，Continue to use self-visa certificates" 
 zqzs
 else
 ymzs
@@ -319,44 +326,44 @@ if [[ -z $port ]]; then
 port=$(shuf -i 10000-65535 -n 1)
 until [[ -z $(ss -tunlp | grep -w udp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") && -z $(ss -tunlp | grep -w tcp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") ]] 
 do
-[[ -n $(ss -tunlp | grep -w udp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") || -n $(ss -tunlp | grep -w tcp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") ]] && yellow "\nPort is occupied，Please re -enter the port" && readp "Custom port:" port
+[[ -n $(ss -tunlp | grep -w udp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") || -n $(ss -tunlp | grep -w tcp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") ]] && yellow "\nPort occupied，Please re-enter the port" && readp "Custom port:" port
 done
 else
 until [[ -z $(ss -tunlp | grep -w udp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") && -z $(ss -tunlp | grep -w tcp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") ]]
 do
-[[ -n $(ss -tunlp | grep -w udp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") || -n $(ss -tunlp | grep -w tcp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") ]] && yellow "\nPort is occupied，Please re -enter the port" && readp "Custom port:" port
+[[ -n $(ss -tunlp | grep -w udp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") || -n $(ss -tunlp | grep -w tcp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") ]] && yellow "\nPort occupied，Please re-enter the port" && readp "Custom port:" port
 done
 fi
 blue "Confirmed port：$port" && sleep 2
 }
 
 vlport(){
-readp "\nset upVless-realityport[1-65535] (Enter the car10000-65535之间的随机port)：" port
+readp "\nset upVless-realityport[1-65535] (Enter to skip as10000-65535Random ports between)：" port
 chooseport
 port_vl_re=$port
 }
 vmport(){
-readp "\nset upVmess-wsport[1-65535] (Enter the car10000-65535之间的随机port)：" port
+readp "\nset upVmess-wsport[1-65535] (Enter to skip as10000-65535Random ports between)：" port
 chooseport
 port_vm_ws=$port
 }
 hy2port(){
-readp "\nset upHysteria2Main port[1-65535] (Enter the car10000-65535Random port between them)：" port
+readp "\nset upHysteria2Main port[1-65535] (Enter to skip as10000-65535Random ports between)：" port
 chooseport
 port_hy2=$port
 }
 tu5port(){
-readp "\nset upTuic5Main port[1-65535] (Enter the car10000-65535Random port between them)：" port
+readp "\nset upTuic5Main port[1-65535] (Enter to skip as10000-65535Random ports between)：" port
 chooseport
 port_tu=$port
 }
 
 insport(){
 red "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-green "three、Set the various protocol ports"
-yellow "1：Automatically generate the random port of each protocol (10000-65535Within)，Enter the default"
-yellow "2：Custom each protocol port"
-readp "Please enter【1-2】：" port
+green "3. Set up each protocol port"
+yellow "1：Automatically generate random ports for each protocol (10000-65535Within range)，Enter default"
+yellow "2：Customize each protocol port"
+readp "Please enter1-2：" port
 if [ -z "$port" ] || [ "$port" = "1" ] ; then
 ports=()
 for i in {1..4}; do
@@ -390,25 +397,25 @@ fi
 port_vm_ws=${numbers[$RANDOM % ${#numbers[@]}]}
 done
 echo
-blue "according toVmess-wsWhether the protocol is enabledTLS，Random specified supportCDNPreferredIPStandard port：$port_vm_ws"
+blue "according toVmess-wsIs the protocol enabled?TLS，Randomly specified supportCDNPreferredIPStandard ports：$port_vm_ws"
 else
 vlport && vmport && hy2port && tu5port
 fi
 echo
-blue "The confirmation of each protocol port is as follows"
+blue "Each protocol port is confirmed as follows"
 blue "Vless-realityport：$port_vl_re"
 blue "Vmess-wsport：$port_vm_ws"
 blue "Hysteria-2port：$port_hy2"
 blue "Tuic-v5port：$port_tu"
 red "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-green "Four、Automatically generate unified each protocoluuid (password)"
+green "4. Automatically generate unified protocolsuuid (password)"
 uuid=$(/etc/s-box/sing-box generate uuid)
-blue "Confirmuuid (password)：${uuid}"
-blue "ConfirmVmessofpathpath：${uuid}-vm"
+blue "Confirmeduuid (password)：${uuid}"
+blue "ConfirmedVmessofpathpath：${uuid}-vm"
 }
 
 inssbjsonser(){
-cat > /etc/s-box/sb.json <<EOF
+cat > /etc/s-box/sb10.json <<EOF
 {
 "log": {
     "disabled": false,
@@ -524,12 +531,12 @@ cat > /etc/s-box/sb.json <<EOF
 {
 "type":"direct",
 "tag": "vps-outbound-v4", 
-"domain_strategy":"ipv4_only"
+"domain_strategy":"prefer_ipv4"
 },
 {
 "type":"direct",
 "tag": "vps-outbound-v6",
-"domain_strategy":"ipv6_only"
+"domain_strategy":"prefer_ipv6"
 },
 {
 "type": "socks",
@@ -542,25 +549,25 @@ cat > /etc/s-box/sb.json <<EOF
 "type":"direct",
 "tag":"socks-IPv4-out",
 "detour":"socks-out",
-"domain_strategy":"ipv4_only"
+"domain_strategy":"prefer_ipv4"
 },
 {
 "type":"direct",
 "tag":"socks-IPv6-out",
 "detour":"socks-out",
-"domain_strategy":"ipv6_only"
+"domain_strategy":"prefer_ipv6"
 },
 {
 "type":"direct",
 "tag":"warp-IPv4-out",
 "detour":"wireguard-out",
-"domain_strategy":"ipv4_only"
+"domain_strategy":"prefer_ipv4"
 },
 {
 "type":"direct",
 "tag":"warp-IPv6-out",
 "detour":"wireguard-out",
-"domain_strategy":"ipv6_only"
+"domain_strategy":"prefer_ipv6"
 },
 {
 "type":"wireguard",
@@ -651,6 +658,215 @@ cat > /etc/s-box/sb.json <<EOF
 }
 }
 EOF
+
+cat > /etc/s-box/sb11.json <<EOF
+{
+"log": {
+    "disabled": false,
+    "level": "info",
+    "timestamp": true
+  },
+  "inbounds": [
+    {
+      "type": "vless",
+
+      
+      "tag": "vless-sb",
+      "listen": "::",
+      "listen_port": ${port_vl_re},
+      "users": [
+        {
+          "uuid": "${uuid}",
+          "flow": "xtls-rprx-vision"
+        }
+      ],
+      "tls": {
+        "enabled": true,
+        "server_name": "${ym_vl_re}",
+          "reality": {
+          "enabled": true,
+          "handshake": {
+            "server": "${ym_vl_re}",
+            "server_port": 443
+          },
+          "private_key": "$private_key",
+          "short_id": ["$short_id"]
+        }
+      }
+    },
+{
+        "type": "vmess",
+
+ 
+        "tag": "vmess-sb",
+        "listen": "::",
+        "listen_port": ${port_vm_ws},
+        "users": [
+            {
+                "uuid": "${uuid}",
+                "alterId": 0
+            }
+        ],
+        "transport": {
+            "type": "ws",
+            "path": "${uuid}-vm",
+            "max_early_data":2048,
+            "early_data_header_name": "Sec-WebSocket-Protocol"    
+        },
+        "tls":{
+                "enabled": ${tlsyn},
+                "server_name": "${ym_vm_ws}",
+                "certificate_path": "$certificatec_vmess_ws",
+                "key_path": "$certificatep_vmess_ws"
+            }
+    }, 
+    {
+        "type": "hysteria2",
+
+ 
+        "tag": "hy2-sb",
+        "listen": "::",
+        "listen_port": ${port_hy2},
+        "users": [
+            {
+                "password": "${uuid}"
+            }
+        ],
+        "ignore_client_bandwidth":false,
+        "tls": {
+            "enabled": true,
+            "alpn": [
+                "h3"
+            ],
+            "certificate_path": "$certificatec_hy2",
+            "key_path": "$certificatep_hy2"
+        }
+    },
+        {
+            "type":"tuic",
+
+     
+            "tag": "tuic5-sb",
+            "listen": "::",
+            "listen_port": ${port_tu},
+            "users": [
+                {
+                    "uuid": "${uuid}",
+                    "password": "${uuid}"
+                }
+            ],
+            "congestion_control": "bbr",
+            "tls":{
+                "enabled": true,
+                "alpn": [
+                    "h3"
+                ],
+                "certificate_path": "$certificatec_tuic",
+                "key_path": "$certificatep_tuic"
+            }
+        }
+],
+"endpoints":[
+{
+"type":"wireguard",
+"tag":"warp-out",
+"address":[
+"172.16.0.2/32",
+"${v6}/128"
+],
+"private_key":"$pvk",
+"peers": [
+{
+"address": "$endip",
+"port":2408,
+"public_key":"bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
+"allowed_ips": [
+"0.0.0.0/0",
+"::/0"
+],
+"reserved":$res
+}
+]
+}
+],
+"outbounds": [
+{
+"type":"direct",
+"tag":"direct",
+"domain_strategy": "$ipv"
+},
+{
+"type":"direct",
+"tag":"vps-outbound-v4", 
+"domain_strategy":"prefer_ipv4"
+},
+{
+"type":"direct",
+"tag":"vps-outbound-v6",
+"domain_strategy":"prefer_ipv6"
+},
+{
+"type": "socks",
+"tag": "socks-out",
+"server": "127.0.0.1",
+"server_port": 40000,
+"version": "5"
+}
+],
+"route":{
+"rules":[
+{
+ "action": "sniff"
+},
+{
+"action": "resolve",
+"domain":[
+"yg_kkk"
+],
+"strategy": "prefer_ipv4"
+},
+{
+"action": "resolve",
+"domain":[
+"yg_kkk"
+],
+"strategy": "prefer_ipv6"
+},
+{
+"domain":[
+"yg_kkk"
+],
+"outbound":"socks-out"
+},
+{
+"domain":[
+"yg_kkk"
+],
+"outbound":"warp-out"
+},
+{
+"outbound":"vps-outbound-v4",
+"domain":[
+"yg_kkk"
+]
+},
+{
+"outbound":"vps-outbound-v6",
+"domain":[
+"yg_kkk"
+]
+},
+{
+"outbound": "direct",
+"network": "udp,tcp"
+}
+]
+}
+}
+EOF
+sbnh=$(/etc/s-box/sing-box version 2>/dev/null | awk '/version/{print $NF}' | cut -d '.' -f 1,2)
+[[ "$sbnh" == "1.10" ]] && num=10 || num=11
+cp /etc/s-box/sb${num}.json /etc/s-box/sb.json
 }
 
 sbservice(){
@@ -813,12 +1029,12 @@ echo
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 vl_link="vless://$uuid@$server_ip:$vl_port?encryption=none&flow=xtls-rprx-vision&security=reality&sni=$vl_name&fp=chrome&pbk=$public_key&sid=$short_id&type=tcp&headerType=none#vl-reality-$hostname"
 echo "$vl_link" > /etc/s-box/vl_reality.txt
-red "🚀【 vless-reality-vision 】Node information is as follows：" && sleep 2
+red "🚀 vless-reality-vision 】The node information is as follows：" && sleep 2
 echo
-echo "Share link【v2rayn、v2rayng、nekobox、Small rocketshadowrocket】"
+echo "Share link【v2rayn,v2rayng,nekobox, Rocketshadowrocket"
 echo -e "${yellow}$vl_link${plain}"
 echo
-echo "QR code【v2rayn、v2rayng、nekobox、Small rocketshadowrocket】"
+echo "QR code【v2rayn,v2rayng,nekobox, Rocketshadowrocket"
 qrencode -o - -t ANSIUTF8 "$(cat /etc/s-box/vl_reality.txt)"
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo
@@ -830,12 +1046,12 @@ argopid
 if [[ -n $(ps -e | grep -w $ls 2>/dev/null) ]]; then
 echo
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-red "🚀【 vmess-ws(tls)+Argo 】Temporary node information is as follows(Optional3-8-3，CustomCDNPreferred address)：" && sleep 2
+red "🚀 vmess-ws(tls)+Argo 】The temporary node information is as follows(Available3-8-3，CustomizeCDNPreferred address)：" && sleep 2
 echo
-echo "Share link【v2rayn、v2rayng、nekobox、Small rocketshadowrocket】"
+echo "Share link【v2rayn,v2rayng,nekobox, Rocketshadowrocket"
 echo -e "${yellow}vmess://$(echo '{"add":"'$vmadd_argo'","aid":"0","host":"'$argo'","id":"'$uuid'","net":"ws","path":"'$ws_path'","port":"8443","ps":"'vm-argo-$hostname'","tls":"tls","sni":"'$argo'","type":"none","v":"2"}' | base64 -w 0)${plain}"
 echo
-echo "QR code【v2rayn、v2rayng、nekobox、Small rocketshadowrocket】"
+echo "QR code【v2rayn,v2rayng,nekobox, Rocketshadowrocket"
 echo 'vmess://'$(echo '{"add":"'$vmadd_argo'","aid":"0","host":"'$argo'","id":"'$uuid'","net":"ws","path":"'$ws_path'","port":"8443","ps":"'vm-argo-$hostname'","tls":"tls","sni":"'$argo'","type":"none","v":"2"}' | base64 -w 0) > /etc/s-box/vm_ws_argols.txt
 qrencode -o - -t ANSIUTF8 "$(cat /etc/s-box/vm_ws_argols.txt)"
 fi
@@ -843,34 +1059,34 @@ if [[ -n $(ps -e | grep -w $ym 2>/dev/null) ]]; then
 argogd=$(cat /etc/s-box/sbargoym.log 2>/dev/null)
 echo
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-red "🚀【 vmess-ws(tls)+Argo 】Fixed node information is as follows (Optional3-8-3，CustomCDNPreferred address)：" && sleep 2
+red "🚀 vmess-ws(tls)+Argo 】Fixed node information is as follows (Available3-8-3，CustomizeCDNPreferred address)：" && sleep 2
 echo
-echo "Share link【v2rayn、v2rayng、nekobox、Small rocketshadowrocket】"
+echo "Share link【v2rayn,v2rayng,nekobox, Rocketshadowrocket"
 echo -e "${yellow}vmess://$(echo '{"add":"'$vmadd_argo'","aid":"0","host":"'$argogd'","id":"'$uuid'","net":"ws","path":"'$ws_path'","port":"8443","ps":"'vm-argo-$hostname'","tls":"tls","sni":"'$argogd'","type":"none","v":"2"}' | base64 -w 0)${plain}"
 echo
-echo "QR code【v2rayn、v2rayng、nekobox、Small rocketshadowrocket】"
+echo "QR code【v2rayn,v2rayng,nekobox, Rocketshadowrocket"
 echo 'vmess://'$(echo '{"add":"'$vmadd_argo'","aid":"0","host":"'$argogd'","id":"'$uuid'","net":"ws","path":"'$ws_path'","port":"8443","ps":"'vm-argo-$hostname'","tls":"tls","sni":"'$argogd'","type":"none","v":"2"}' | base64 -w 0) > /etc/s-box/vm_ws_argogd.txt
 qrencode -o - -t ANSIUTF8 "$(cat /etc/s-box/vm_ws_argogd.txt)"
 fi
 echo
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-red "🚀【 vmess-ws 】Node information is as follows (Suggestion choice3-8-1，Set toCDNPreferred node)：" && sleep 2
+red "🚀 vmess-ws 】The node information is as follows (Recommended choice3-8-1，Set asCDNPreferred nodes)：" && sleep 2
 echo
-echo "Share link【v2rayn、v2rayng、nekobox、Small rocketshadowrocket】"
+echo "Share link【v2rayn,v2rayng,nekobox, Rocketshadowrocket"
 echo -e "${yellow}vmess://$(echo '{"add":"'$vmadd_are_local'","aid":"0","host":"'$vm_name'","id":"'$uuid'","net":"ws","path":"'$ws_path'","port":"'$vm_port'","ps":"'vm-ws-$hostname'","tls":"","type":"none","v":"2"}' | base64 -w 0)${plain}"
 echo
-echo "QR code【v2rayn、v2rayng、nekobox、Small rocketshadowrocket】"
+echo "QR code【v2rayn,v2rayng,nekobox, Rocketshadowrocket"
 echo 'vmess://'$(echo '{"add":"'$vmadd_are_local'","aid":"0","host":"'$vm_name'","id":"'$uuid'","net":"ws","path":"'$ws_path'","port":"'$vm_port'","ps":"'vm-ws-$hostname'","tls":"","type":"none","v":"2"}' | base64 -w 0) > /etc/s-box/vm_ws.txt
 qrencode -o - -t ANSIUTF8 "$(cat /etc/s-box/vm_ws.txt)"
 else
 echo
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-red "🚀【 vmess-ws-tls 】Node information is as follows (Suggestion choice3-8-1，Set toCDNPreferred node)：" && sleep 2
+red "🚀 vmess-ws-tls 】The node information is as follows (Recommended choice3-8-1，Set asCDNPreferred nodes)：" && sleep 2
 echo
-echo "Share link【v2rayn、v2rayng、nekobox、Small rocketshadowrocket】"
+echo "Share link【v2rayn,v2rayng,nekobox, Rocketshadowrocket"
 echo -e "${yellow}vmess://$(echo '{"add":"'$vmadd_are_local'","aid":"0","host":"'$vm_name'","id":"'$uuid'","net":"ws","path":"'$ws_path'","port":"'$vm_port'","ps":"'vm-ws-tls-$hostname'","tls":"tls","sni":"'$vm_name'","type":"none","v":"2"}' | base64 -w 0)${plain}"
 echo
-echo "QR code【v2rayn、v2rayng、nekobox、Small rocketshadowrocket】"
+echo "QR code【v2rayn,v2rayng,nekobox, Rocketshadowrocket"
 echo 'vmess://'$(echo '{"add":"'$vmadd_are_local'","aid":"0","host":"'$vm_name'","id":"'$uuid'","net":"ws","path":"'$ws_path'","port":"'$vm_port'","ps":"'vm-ws-tls-$hostname'","tls":"tls","sni":"'$vm_name'","type":"none","v":"2"}' | base64 -w 0) > /etc/s-box/vm_ws_tls.txt
 qrencode -o - -t ANSIUTF8 "$(cat /etc/s-box/vm_ws_tls.txt)"
 fi
@@ -883,12 +1099,12 @@ echo
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 hy2_link="hysteria2://$uuid@$sb_hy2_ip:$hy2_port?&alpn=h3&insecure=$ins_hy2&mport=$hyps&sni=$hy2_name#hy2-$hostname"
 echo "$hy2_link" > /etc/s-box/hy2.txt
-red "🚀【 Hysteria-2 】Node information is as follows：" && sleep 2
+red "🚀 Hysteria-2 】The node information is as follows：" && sleep 2
 echo
-echo "Share link【v2rayn、nekobox、Small rocketshadowrocket】"
+echo "Share link【v2rayn,nekobox, Rocketshadowrocket"
 echo -e "${yellow}$hy2_link${plain}"
 echo
-echo "QR code【v2rayn、nekobox、Small rocketshadowrocket】"
+echo "QR code【v2rayn,nekobox, Rocketshadowrocket"
 qrencode -o - -t ANSIUTF8 "$(cat /etc/s-box/hy2.txt)"
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo
@@ -899,12 +1115,12 @@ echo
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 tuic5_link="tuic://$uuid:$uuid@$sb_tu5_ip:$tu5_port?congestion_control=bbr&udp_relay_mode=native&alpn=h3&sni=$tu5_name&allow_insecure=$ins#tu5-$hostname"
 echo "$tuic5_link" > /etc/s-box/tuic5.txt
-red "🚀【 Tuic-v5 】Node information is as follows：" && sleep 2
+red "🚀 Tuic-v5 】The node information is as follows：" && sleep 2
 echo
-echo "Share link【v2rayn、nekobox、Small rocketshadowrocket】"
+echo "Share link【v2rayn,nekobox, Rocketshadowrocket"
 echo -e "${yellow}$tuic5_link${plain}"
 echo
-echo "QR code【v2rayn、nekobox、Small rocketshadowrocket】"
+echo "QR code【v2rayn,nekobox, Rocketshadowrocket"
 qrencode -o - -t ANSIUTF8 "$(cat /etc/s-box/tuic5.txt)"
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo
@@ -1486,7 +1702,7 @@ proxy-groups:
     - vmess-tls-argotemporary-$hostname
     - vmess-argotemporary-$hostname
 
-- name: Automatic choice
+- name: Automatic selection
   type: url-test
   url: https://www.gstatic.com/generate_204
   interval: 300
@@ -1501,11 +1717,11 @@ proxy-groups:
     - vmess-tls-argotemporary-$hostname
     - vmess-argotemporary-$hostname
     
-- name: 🌍Choose proxy nodes
+- name: 🌍Select a proxy node
   type: select
   proxies:
     - Load balancing                                         
-    - Automatic choice
+    - Automatic selection
     - DIRECT
     - vless-reality-vision-$hostname                              
     - vmess-ws-$hostname
@@ -1518,7 +1734,7 @@ proxy-groups:
 rules:
   - GEOIP,LAN,DIRECT
   - GEOIP,CN,DIRECT
-  - MATCH,🌍Choose proxy nodes
+  - MATCH,🌍Select a proxy node
 EOF
 
 
@@ -2010,7 +2226,7 @@ proxy-groups:
     - vmess-tls-argotemporary-$hostname
     - vmess-argotemporary-$hostname
 
-- name: Automatic choice
+- name: Automatic selection
   type: url-test
   url: https://www.gstatic.com/generate_204
   interval: 300
@@ -2023,11 +2239,11 @@ proxy-groups:
     - vmess-tls-argotemporary-$hostname
     - vmess-argotemporary-$hostname
     
-- name: 🌍Choose proxy nodes
+- name: 🌍Select a proxy node
   type: select
   proxies:
     - Load balancing                                         
-    - Automatic choice
+    - Automatic selection
     - DIRECT
     - vless-reality-vision-$hostname                              
     - vmess-ws-$hostname
@@ -2038,7 +2254,7 @@ proxy-groups:
 rules:
   - GEOIP,LAN,DIRECT
   - GEOIP,CN,DIRECT
-  - MATCH,🌍Choose proxy nodes
+  - MATCH,🌍Select a proxy node
 EOF
 
 elif [[ -n $(ps -e | grep -w $ym 2>/dev/null) && ! -n $(ps -e | grep -w $ls 2>/dev/null) && "$tls" = "false" ]]; then
@@ -2527,7 +2743,7 @@ proxy-groups:
     - vmess-tls-argofixed-$hostname
     - vmess-argofixed-$hostname
 
-- name: Automatic choice
+- name: Automatic selection
   type: url-test
   url: https://www.gstatic.com/generate_204
   interval: 300
@@ -2540,11 +2756,11 @@ proxy-groups:
     - vmess-tls-argofixed-$hostname
     - vmess-argofixed-$hostname
     
-- name: 🌍Choose proxy nodes
+- name: 🌍Select a proxy node
   type: select
   proxies:
     - Load balancing                                         
-    - Automatic choice
+    - Automatic selection
     - DIRECT
     - vless-reality-vision-$hostname                              
     - vmess-ws-$hostname
@@ -2555,7 +2771,7 @@ proxy-groups:
 rules:
   - GEOIP,LAN,DIRECT
   - GEOIP,CN,DIRECT
-  - MATCH,🌍Choose proxy nodes
+  - MATCH,🌍Select a proxy node
 EOF
 
 else
@@ -2950,7 +3166,7 @@ proxy-groups:
     - hysteria2-$hostname
     - tuic5-$hostname
 
-- name: Automatic choice
+- name: Automatic selection
   type: url-test
   url: https://www.gstatic.com/generate_204
   interval: 300
@@ -2961,11 +3177,11 @@ proxy-groups:
     - hysteria2-$hostname
     - tuic5-$hostname
     
-- name: 🌍Choose proxy nodes
+- name: 🌍Select a proxy node
   type: select
   proxies:
     - Load balancing                                         
-    - Automatic choice
+    - Automatic selection
     - DIRECT
     - vless-reality-vision-$hostname                              
     - vmess-ws-$hostname
@@ -2974,7 +3190,7 @@ proxy-groups:
 rules:
   - GEOIP,LAN,DIRECT
   - GEOIP,CN,DIRECT
-  - MATCH,🌍Choose proxy nodes
+  - MATCH,🌍Select a proxy node
 EOF
 fi
 
@@ -3015,9 +3231,6 @@ a=$hy2_ports
 sed -i "/server:/ s/$/$a/" /etc/s-box/v2rayn_hy2.yaml
 fi
 sed -i 's/server: \(.*\)/server: "\1"/' /etc/s-box/v2rayn_hy2.yaml
-#if [[ -f /etc/s-box/i ]]; then
-#sed -i 's/"inet6_address":/\/\/&/' /etc/s-box/sing_box_client.json
-#fi
 }
 
 cfargo_ym(){
@@ -3026,8 +3239,8 @@ if [[ "$tls" = "false" ]]; then
 echo
 yellow "1：ArgoTemporary tunnel"
 yellow "2：ArgoFixed tunnel"
-yellow "0：Back to the upper level"
-readp "Choose【0-2】：" menu
+yellow "0：Return to the upper layer"
+readp "Please select [0-2：" menu
 if [ "$menu" = "1" ]; then
 cfargo
 elif [ "$menu" = "2" ]; then
@@ -3036,7 +3249,7 @@ else
 changeserv
 fi
 else
-yellow "becausevmessOpentls，ArgoTunnel function is not available" && sleep 2
+yellow "becausevmessTurn ontls，ArgoTunnel function is not available" && sleep 2
 fi
 }
 
@@ -3059,11 +3272,11 @@ green "currentArgoFixed tunnel domain name：$(cat /etc/s-box/sbargoym.log 2>/de
 green "currentArgoFixed tunnelToken：$(cat /etc/s-box/sbargotoken.log 2>/dev/null)"
 fi
 echo
-green "Please guaranteeCloudflareOfficial website --- Zero Trust --- Networks --- TunnelsCompleted"
-yellow "1：Repossess/set upArgoFixed tunnel domain name"
+green "Please make sureCloudflareOfficial website --- Zero Trust --- Networks --- TunnelsSet up completed"
+yellow "1：Reset/set upArgoFixed tunnel domain name"
 yellow "2：stopArgoFixed tunnel"
-yellow "0：Back to the upper level"
-readp "Choose【0-2】：" menu
+yellow "0：Return to the upper layer"
+readp "Please select [0-2：" menu
 if [ "$menu" = "1" ]; then
 cloudflaredargo
 readp "enterArgoFixed tunnelToken: " argotoken
@@ -3084,7 +3297,7 @@ echo '@reboot /bin/bash -c "nohup setsid /etc/s-box/cloudflared tunnel --no-auto
 crontab /tmp/crontab.tmp
 rm /tmp/crontab.tmp
 argo=$(cat /etc/s-box/sbargoym.log 2>/dev/null)
-blue "ArgoFixed tunnel settings complete，Fixed domain name：$argo"
+blue "ArgoFixed tunnel setup is completed，Fixed domain name：$argo"
 elif [ "$menu" = "2" ]; then
 kill -15 $(cat /etc/s-box/sbargoympid.log 2>/dev/null) >/dev/null 2>&1
 crontab -l > /tmp/crontab.tmp
@@ -3092,7 +3305,7 @@ sed -i '/sbargoympid/d' /tmp/crontab.tmp
 crontab /tmp/crontab.tmp
 rm /tmp/crontab.tmp
 rm -rf /etc/s-box/vm_ws_argogd.txt
-green "ArgoThe fixed tunnel has stopped"
+green "ArgoFixed tunnel has stopped"
 else
 cfargo_ym
 fi
@@ -3100,15 +3313,15 @@ fi
 
 cfargo(){
 echo
-yellow "1：RepossessArgoTemporary tunnel domain name"
+yellow "1：ResetArgoTemporary tunnel domain name"
 yellow "2：stopArgoTemporary tunnel"
-yellow "0：Back to the upper level"
-readp "Choose【0-2】：" menu
+yellow "0：Return to the upper layer"
+readp "Please select [0-2：" menu
 if [ "$menu" = "1" ]; then
 cloudflaredargo
 i=0
 while [ $i -le 4 ]; do let i++
-yellow "First$iSimplification verificationCloudflared ArgoTemporary tunnel domain name validity，Please wait……"
+yellow "The$iRefresh verificationCloudflared ArgoTemporary tunnel domain name validity，Please wait……"
 if [[ -n $(ps -e | grep cloudflared) ]]; then
 kill -15 $(cat /etc/s-box/sbargopid.log 2>/dev/null) >/dev/null 2>&1
 fi
@@ -3117,12 +3330,12 @@ echo "$!" > /etc/s-box/sbargopid.log
 sleep 20
 if [[ -n $(curl -sL https://$(cat /etc/s-box/argo.log 2>/dev/null | grep -a trycloudflare.com | awk 'NR==2{print}' | awk -F// '{print $2}' | awk '{print $1}')/ -I | awk 'NR==1 && /404|400|503/') ]]; then
 argo=$(cat /etc/s-box/argo.log 2>/dev/null | grep -a trycloudflare.com | awk 'NR==2{print}' | awk -F// '{print $2}' | awk '{print $1}')
-blue "ArgoSuccessful application for temporary tunnel，Domain name verification is valid：$argo" && sleep 2
+blue "ArgoApplication for temporary tunnel successfully，Domain name verification is valid：$argo" && sleep 2
 break
 fi
 if [ $i -eq 5 ]; then
 echo
-yellow "ArgoTemporary domain name verification is not available temporarily，May recover automatically later，Or apply for reset" && sleep 3
+yellow "ArgoTemporary domain name verification is not available yet，It may automatically resume later，Or apply for a reset" && sleep 3
 fi
 done
 crontab -l > /tmp/crontab.tmp
@@ -3145,7 +3358,7 @@ fi
 
 instsllsingbox(){
 if [[ -f '/etc/systemd/system/sing-box.service' ]]; then
-red "InstalledSing-boxServe，Can't install it again" && exit
+red "InstalledSing-boxServe，Cannot install again" && exit
 fi
 mkdir -p /etc/s-box
 v6
@@ -3155,7 +3368,7 @@ inscertificate
 insport
 sleep 2
 echo
-blue "Vless-realityRelatedkeyandidWill automatically generate……"
+blue "Vless-realityRelatedkeyandidWill be generated automatically……"
 key_pair=$(/etc/s-box/sing-box generate reality-keypair)
 private_key=$(echo "$key_pair" | awk '/PrivateKey/ {print $2}' | tr -d '"')
 public_key=$(echo "$key_pair" | awk '/PublicKey/ {print $2}' | tr -d '"')
@@ -3164,52 +3377,54 @@ short_id=$(/etc/s-box/sing-box generate rand --hex 4)
 wget -q -O /root/geoip.db https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.db
 wget -q -O /root/geosite.db https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.db
 red "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-green "five、Automatically generatewarp-wireguardExit account" && sleep 2
+green "5. Automatic generationwarp-wireguardOutbound account" && sleep 2
 warpwg
-inssbjsonser && sbservice && sbactive
+inssbjsonser
+sbservice
+sbactive
 #curl -sL https://gitlab.com/rwkgyg/sing-box-yg/-/raw/main/version/version | awk -F "Update content" '{print $1}' | head -n 1 > /etc/s-box/v
 curl -sL https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/version | awk -F "Update content" '{print $1}' | head -n 1 > /etc/s-box/v
 clear
 red "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-lnsb && blue "Sing-box-ygSuccessful script installation，Script shortcut：sb" && cronsb && sleep 1
+lnsb && blue "Sing-box-ygThe script is installed successfully，Script shortcuts：sb" && cronsb && sleep 1
 sbshare
 red "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-blue "Hysteria2/Tuic5CustomV2rayNConfiguration、Clash-Meta/Sing-box客户端Configuration及私有订阅链接，Choose9Check"
+blue "Hysteria2/Tuic5CustomizeV2rayNConfiguration,Clash-Meta/Sing-boxClient configuration and private subscription link，Please select9Check"
 red "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo
 }
 
 changeym(){
-[ -f /root/ygkkkca/ca.log ] && ymzs="$yellowSwitch to a domain name certificate：$(cat /root/ygkkkca/ca.log 2>/dev/null)$plain" || ymzs="$yellowUnexpected domain name certificate，Unable to switch$plain"
-vl_na="The domain name in use：$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[0].tls.server_name')。$yellowReplacerealityRequired domain name，Do not support certificate domain name$plain"
+[ -f /root/ygkkkca/ca.log ] && ymzs="$yellowSwitch to domain name certificate：$(cat /root/ygkkkca/ca.log 2>/dev/null)$plain" || ymzs="$yellowNo domain name certificate applied for，Unable to switch$plain"
+vl_na="Domain name being used：$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[0].tls.server_name').$yellowReplacement conformsrealityThe required domain name，Certificate domain names are not supported$plain"
 tls=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[1].tls.enabled')
-[[ "$tls" = "false" ]] && vm_na="Currently closedTLS。$ymzs ${yellow}Will openTLS，ArgoThe tunnel will not support opening${plain}" || vm_na="The domain name certificate in use：$(cat /root/ygkkkca/ca.log 2>/dev/null)。$yellowSwitch to closeTLS，ArgoTunnels will be available$plain"
+[[ "$tls" = "false" ]] && vm_na="Currently closedTLS.$ymzs ${yellow}Will be turned onTLS，ArgoThe tunnel will not support opening${plain}" || vm_na="Domain name certificate in use：$(cat /root/ygkkkca/ca.log 2>/dev/null).$yellowSwitch to OffTLS，ArgoThe tunnel will be available$plain"
 hy2_sniname=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[2].tls.key_path')
-[[ "$hy2_sniname" = '/etc/s-box/private.key' ]] && hy2_na="Using self -visabingCertificate。$ymzs" || hy2_na="正在使用的域名Certificate：$(cat /root/ygkkkca/ca.log 2>/dev/null)。$yellowSwitch to self -visabingCertificate$plain"
+[[ "$hy2_sniname" = '/etc/s-box/private.key' ]] && hy2_na="Using self-signaturebingCertificate.$ymzs" || hy2_na="Domain name certificate in use：$(cat /root/ygkkkca/ca.log 2>/dev/null).$yellowSwitch to self-signbingCertificate$plain"
 tu5_sniname=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[3].tls.key_path')
-[[ "$tu5_sniname" = '/etc/s-box/private.key' ]] && tu5_na="Using self -visabingCertificate。$ymzs" || tu5_na="正在使用的域名Certificate：$(cat /root/ygkkkca/ca.log 2>/dev/null)。$yellowSwitch to self -visabingCertificate$plain"
+[[ "$tu5_sniname" = '/etc/s-box/private.key' ]] && tu5_na="Using self-signaturebingCertificate.$ymzs" || tu5_na="Domain name certificate in use：$(cat /root/ygkkkca/ca.log 2>/dev/null).$yellowSwitch to self-signbingCertificate$plain"
 echo
-green "Please select the agreement to switch the certificate mode"
+green "Please select the protocol to switch certificate mode"
 green "1：vless-realityprotocol，$vl_na"
 if [[ -f /root/ygkkkca/ca.log ]]; then
 green "2：vmess-wsprotocol，$vm_na"
 green "3：Hysteria2protocol，$hy2_na"
 green "4：Tuic5protocol，$tu5_na"
 else
-red "Only support options1 (vless-reality)。Because the domain name certificate is not applied for，vmess-ws、Hysteria-2、Tuic-v5The certificate switch option will not be displayed for the time being"
+red "Options are only supported1 (vless-reality). Because I did not apply for a domain name certificate，vmess-ws,Hysteria-2,Tuic-v5The certificate switching option is not displayed yet"
 fi
-green "0：Back to the upper level"
-readp "Choose：" menu
+green "0：Return to the upper layer"
+readp "Please select：" menu
 if [ "$menu" = "1" ]; then
-readp "Please entervless-realitydomain name (Enterwww.yahoo.com)：" menu
+readp "Please entervless-realitydomain name (Enter to usewww.yahoo.com)：" menu
 ym_vl_re=${menu:-www.yahoo.com}
 a=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[0].tls.server_name')
 b=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[0].tls.reality.handshake.server')
 c=$(cat /etc/s-box/vl_reality.txt | cut -d'=' -f5 | cut -d'&' -f1)
-sed -i "23s/$a/$ym_vl_re/" /etc/s-box/sb.json
-sed -i "27s/$b/$ym_vl_re/" /etc/s-box/sb.json
+echo $sbfiles | xargs -n1 sed -i "23s/$a/$ym_vl_re/"
+echo $sbfiles | xargs -n1 sed -i "27s/$b/$ym_vl_re/"
 restartsb
-blue "Set up，Please go back to the main menu and enter the option9Update node configuration"
+blue "Setup is complete，Please return to the main menu to enter options9Update node configuration"
 elif [ "$menu" = "2" ]; then
 if [ -f /root/ygkkkca/ca.log ]; then
 a=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[1].tls.enabled')
@@ -3225,20 +3440,20 @@ else
 c_c='/etc/s-box/cert.pem'
 d_d='/etc/s-box/private.key'
 fi
-sed -i "55s#$a#$a_a#" /etc/s-box/sb.json
-sed -i "56s#$b#$b_b#" /etc/s-box/sb.json
-sed -i "57s#$c#$c_c#" /etc/s-box/sb.json
-sed -i "58s#$d#$d_d#" /etc/s-box/sb.json
+echo $sbfiles | xargs -n1 sed -i "55s#$a#$a_a#"
+echo $sbfiles | xargs -n1 sed -i "56s#$b#$b_b#"
+echo $sbfiles | xargs -n1 sed -i "57s#$c#$c_c#"
+echo $sbfiles | xargs -n1 sed -i "58s#$d#$d_d#"
 restartsb
-blue "Set up，Please go back to the main menu and enter the option9Update node configuration"
+blue "Setup is complete，Please return to the main menu to enter options9Update node configuration"
 echo
 tls=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[1].tls.enabled')
 vm_port=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[1].listen_port')
 blue "currentVmess-ws(tls)Port：$vm_port"
-[[ "$tls" = "false" ]] && blue "Remember：Can enter the main menu option4-2，WillVmess-wsThe port is changed to any7indivual80Portfolio(80、8080、8880、2052、2082、2086、2095)，Can be realizedCDNPreferredIP" || blue "Remember：Can enter the main menu option4-2，WillVmess-ws-tlsThe port is changed to any6indivual443Port(443、8443、2053、2083、2087、2096)，Can be realizedCDNPreferredIP"
+[[ "$tls" = "false" ]] && blue "Remember：Access to main menu options4-2，WillVmess-wsChange the port to any7indivual80System port(80,8080,8880,2052,2082,2086,2095)，AchievableCDNPreferredIP" || blue "Remember：Access to main menu options4-2，WillVmess-ws-tlsChange the port to any6indivual443The port of the system(443,8443,2053,2083,2087,2096)，AchievableCDNPreferredIP"
 echo
 else
-red "No domain name certificate is currently not applying，Not to switch。Main menu selection12，implementAcmeCertificate application" && sleep 2 && sb
+red "No domain name certificate is currently applied for，Not switchable. Main menu selection12，implementAcmeCertificate application" && sleep 2 && sb
 fi
 elif [ "$menu" = "3" ]; then
 if [ -f /root/ygkkkca/ca.log ]; then
@@ -3251,12 +3466,12 @@ else
 c_c='/etc/s-box/cert.pem'
 d_d='/etc/s-box/private.key'
 fi
-sed -i "79s#$c#$c_c#" /etc/s-box/sb.json
-sed -i "80s#$d#$d_d#" /etc/s-box/sb.json
+echo $sbfiles | xargs -n1 sed -i "79s#$c#$c_c#"
+echo $sbfiles | xargs -n1 sed -i "80s#$d#$d_d#"
 restartsb
-blue "Set up，Please go back to the main menu and enter the option9Update node configuration"
+blue "Setup is complete，Please return to the main menu to enter options9Update node configuration"
 else
-red "No domain name certificate is currently not applying，Not to switch。Main menu selection12，implementAcmeCertificate application" && sleep 2 && sb
+red "No domain name certificate is currently applied for，Not switchable. Main menu selection12，implementAcmeCertificate application" && sleep 2 && sb
 fi
 elif [ "$menu" = "4" ]; then
 if [ -f /root/ygkkkca/ca.log ]; then
@@ -3269,12 +3484,12 @@ else
 c_c='/etc/s-box/cert.pem'
 d_d='/etc/s-box/private.key'
 fi
-sed -i "102s#$c#$c_c#" /etc/s-box/sb.json
-sed -i "103s#$d#$d_d#" /etc/s-box/sb.json
+echo $sbfiles | xargs -n1 sed -i "102s#$c#$c_c#"
+echo $sbfiles | xargs -n1 sed -i "103s#$d#$d_d#"
 restartsb
-blue "Set up，Please go back to the main menu and enter the option9Update node configuration"
+blue "Setup is complete，Please return to the main menu to enter options9Update node configuration"
 else
-red "No domain name certificate is currently not applying，Not to switch。Main menu selection12，implementAcmeCertificate application" && sleep 2 && sb
+red "No domain name certificate is currently applied for，Not switchable. Main menu selection12，implementAcmeCertificate application" && sleep 2 && sb
 fi
 else
 sb
@@ -3296,7 +3511,7 @@ changeport(){
 sbactive
 allports
 fports(){
-readp "\nPlease enter the port range of the forwarding (1000-65535Within，Format Small number:Large number)：" rangeport
+readp "\nPlease enter the forwarded port range (1000-65535Within range，The format is Small numbers:Big numbers)：" rangeport
 if [[ $rangeport =~ ^([1-9][0-9]{3,4}:[1-9][0-9]{3,4})$ ]]; then
 b=${rangeport%%:*}
 c=${rangeport##*:}
@@ -3305,23 +3520,23 @@ iptables -t nat -A PREROUTING -p udp --dport $rangeport -j DNAT --to-destination
 ip6tables -t nat -A PREROUTING -p udp --dport $rangeport -j DNAT --to-destination :$port
 netfilter-persistent save >/dev/null 2>&1
 service iptables save >/dev/null 2>&1
-blue "The port range that has been confirmed to forward：$rangeport"
+blue "Confirmed forwarded port range：$rangeport"
 else
 red "The input port range is not within the valid range" && fports
 fi
 else
-red "Input format is incorrect。Format Small number:Large number" && fports
+red "The input format is incorrect. The format is Small numbers:Big numbers" && fports
 fi
 echo
 }
 fport(){
-readp "\nPlease enter a forwarding port (1000-65535Within)：" onlyport
+readp "\nPlease enter a forwarding port (1000-65535Within range)：" onlyport
 if [[ $onlyport -ge 1000 && $onlyport -le 65535 ]]; then
 iptables -t nat -A PREROUTING -p udp --dport $onlyport -j DNAT --to-destination :$port
 ip6tables -t nat -A PREROUTING -p udp --dport $onlyport -j DNAT --to-destination :$port
 netfilter-persistent save >/dev/null 2>&1
 service iptables save >/dev/null 2>&1
-blue "The port that has been confirmed to forward：$onlyport"
+blue "Confirmed forwarding port：$onlyport"
 else
 blue "The input port is not within the valid range" && fport
 fi
@@ -3352,58 +3567,58 @@ service iptables save >/dev/null 2>&1
 }
 
 allports
-green "Vless-realityandVmess-wsCan only change the unique port，vmess-wsNoticeArgoPort reset"
-green "Hysteria2andTuic5Support to change the main port，It also supports addition and delete multiple forwarding ports"
-green "Hysteria2Support port jumping，AndTuic5All support multi -port reuse"
+green "Vless-realityandVmess-wsOnly unique ports can be changed，vmess-wsNoticeArgoPort reset"
+green "Hysteria2andTuic5Supports changing the main port，It also supports adding and deleting multiple forwarding ports"
+green "Hysteria2Supports port jump，And withTuic5All support multi-port reuse"
 echo
 green "1：Vless-realityprotocol ${yellow}port:$vl_port${plain}"
 green "2：Vmess-wsprotocol ${yellow}port:$vm_port${plain}"
-green "3：Hysteria2protocol ${yellow}port:$hy2_port  转发多port: $hy2zfport${plain}"
-green "4：Tuic5protocol ${yellow}port:$tu5_port  转发多port: $tu5zfport${plain}"
-green "0：Back to the upper level"
-readp "Please select the protocol to change the port【0-4】：" menu
+green "3：Hysteria2protocol ${yellow}port:$hy2_port  Forwarding multi-port: $hy2zfport${plain}"
+green "4：Tuic5protocol ${yellow}port:$tu5_port  Forwarding multi-port: $tu5zfport${plain}"
+green "0：Return to the upper layer"
+readp "Please select the protocol to change the port【0-4：" menu
 if [ "$menu" = "1" ]; then
 vlport
-sed -i "14s/$vl_port/$port_vl_re/" /etc/s-box/sb.json
+echo $sbfiles | xargs -n1 sed -i "14s/$vl_port/$port_vl_re/"
 restartsb
-blue "Vless-realityPortal change is completed，Optional9Output configuration information"
+blue "Vless-realityPort change is completed，Available9Output configuration information"
 echo
 elif [ "$menu" = "2" ]; then
 vmport
-sed -i "41s/$vm_port/$port_vm_ws/" /etc/s-box/sb.json
+echo $sbfiles | xargs -n1 sed -i "41s/$vm_port/$port_vm_ws/"
 restartsb
-blue "Vmess-wsPortal change is completed，Optional9Output configuration information"
+blue "Vmess-wsPort change is completed，Available9Output configuration information"
 tls=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[1].tls.enabled')
 if [[ "$tls" = "false" ]]; then
-blue "Remember：ifArgoIn use，Temporary tunnel must be reset，Fixed tunnelCFSet the interface port must be modified to$port_vm_ws。"
+blue "Remember：ifArgoIn use，Temporary tunnel must be reset，Fixed tunnelCFThe interface port must be modified to$port_vm_ws"
 else
 blue "currentArgoThe tunnel is no longer supported to open"
 fi
 echo
 elif [ "$menu" = "3" ]; then
-green "1：replaceHysteria2Main port (The original multi -port automatic resetting delete)"
-green "2：Add toHysteria2Multi -port"
-green "3：Reset and deleteHysteria2Multi -port"
-green "0：Back to the upper level"
-readp "Choose【0-3】：" menu
+green "1：replaceHysteria2Main port (Automatic reset and delete of original multi-port)"
+green "2：Add toHysteria2Multi-port"
+green "3：Reset DeleteHysteria2Multi-port"
+green "0：Return to the upper layer"
+readp "Please select [0-3：" menu
 if [ "$menu" = "1" ]; then
 if [ -n $hy2_ports ]; then
 hy2deports
 hy2port
-sed -i "67s/$hy2_port/$port_hy2/" /etc/s-box/sb.json
+echo $sbfiles | xargs -n1 sed -i "67s/$hy2_port/$port_hy2/"
 restartsb
 result_vl_vm_hy_tu && reshy2 && sb_client
 else
 hy2port
-sed -i "67s/$hy2_port/$port_hy2/" /etc/s-box/sb.json
+echo $sbfiles | xargs -n1 sed -i "67s/$hy2_port/$port_hy2/"
 restartsb
 result_vl_vm_hy_tu && reshy2 && sb_client
 fi
 elif [ "$menu" = "2" ]; then
-green "1：Add toHysteria2Port port"
+green "1：Add toHysteria2Range port"
 green "2：Add toHysteria2Single port"
-green "0：Back to the upper level"
-readp "Choose【0-2】：" menu
+green "0：Return to the upper layer"
+readp "Please select [0-2：" menu
 if [ "$menu" = "1" ]; then
 port=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[2].listen_port')
 fports && result_vl_vm_hy_tu && sb_client && changeport
@@ -3417,36 +3632,36 @@ elif [ "$menu" = "3" ]; then
 if [ -n $hy2_ports ]; then
 hy2deports && result_vl_vm_hy_tu && sb_client && changeport
 else
-yellow "Hysteria2No multi -port" && changeport
+yellow "Hysteria2No multi-port is set" && changeport
 fi
 else
 changeport
 fi
 
 elif [ "$menu" = "4" ]; then
-green "1：replaceTuic5Main port (The original multi -port automatic resetting delete)"
-green "2：Add toTuic5Multi -port"
-green "3：Reset and deleteTuic5Multi -port"
-green "0：Back to the upper level"
-readp "Choose【0-3】：" menu
+green "1：replaceTuic5Main port (Automatic reset and delete of original multi-port)"
+green "2：Add toTuic5Multi-port"
+green "3：Reset DeleteTuic5Multi-port"
+green "0：Return to the upper layer"
+readp "Please select [0-3：" menu
 if [ "$menu" = "1" ]; then
 if [ -n $tu5_ports ]; then
 tu5deports
 tu5port
-sed -i "89s/$tu5_port/$port_tu/" /etc/s-box/sb.json
+echo $sbfiles | xargs -n1 sed -i "89s/$tu5_port/$port_tu/"
 restartsb
 result_vl_vm_hy_tu && restu5 && sb_client
 else
 tu5port
-sed -i "89s/$tu5_port/$port_tu/" /etc/s-box/sb.json
+echo $sbfiles | xargs -n1 sed -i "89s/$tu5_port/$port_tu/"
 restartsb
 result_vl_vm_hy_tu && restu5 && sb_client
 fi
 elif [ "$menu" = "2" ]; then
-green "1：Add toTuic5Port port"
+green "1：Add toTuic5Range port"
 green "2：Add toTuic5Single port"
-green "0：Back to the upper level"
-readp "Choose【0-2】：" menu
+green "0：Return to the upper layer"
+readp "Please select [0-2：" menu
 if [ "$menu" = "1" ]; then
 port=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[3].listen_port')
 fports && result_vl_vm_hy_tu && sb_client && changeport
@@ -3460,7 +3675,7 @@ elif [ "$menu" = "3" ]; then
 if [ -n $tu5_ports ]; then
 tu5deports && result_vl_vm_hy_tu && sb_client && changeport
 else
-yellow "Tuic5No multi -port" && changeport
+yellow "Tuic5No multi-port is set" && changeport
 fi
 else
 changeport
@@ -3477,31 +3692,31 @@ oldvmpath=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[1].transport.p
 green "Full agreementuuid (password)：$olduuid"
 green "Vmessofpathpath：$oldvmpath"
 echo
-yellow "1：Customized full protocoluuid (password)"
-yellow "2：CustomVmessofpathpath"
-yellow "0：Back to the upper level"
-readp "Choose【0-2】：" menu
+yellow "1：Customize the full protocoluuid (password)"
+yellow "2：CustomizeVmessofpathpath"
+yellow "0：Return to the upper layer"
+readp "Please select [0-2：" menu
 if [ "$menu" = "1" ]; then
-readp "enteruuid，Must beuuidFormat，Enter the car if you don't understand(Reset and randomly generateuuid)：" menu
+readp "enteruuid，Must beuuidFormat，Go back if you don't understand(Reset and generate randomlyuuid)：" menu
 if [ -z "$menu" ]; then
 uuid=$(/etc/s-box/sing-box generate uuid)
 else
 uuid=$menu
 fi
-sed -i "s/$olduuid/$uuid/g" /etc/s-box/sb.json
+echo $sbfiles | xargs -n1 sed -i "s/$olduuid/$uuid/g"
 restartsb
-blue "Confirmuuid (password)：${uuid}" 
-blue "ConfirmVmessofpathpath：$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[1].transport.path')"
+blue "Confirmeduuid (password)：${uuid}" 
+blue "ConfirmedVmessofpathpath：$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[1].transport.path')"
 elif [ "$menu" = "2" ]; then
-readp "enterVmessofpathpath，Enter means unchanged：" menu
+readp "enterVmessofpathpath，Enter means that it remains unchanged：" menu
 if [ -z "$menu" ]; then
 echo
 else
 vmpath=$menu
-sed -i "50s#$oldvmpath#$vmpath#g" /etc/s-box/sb.json
+echo $sbfiles | xargs -n1 sed -i "50s#$oldvmpath#$vmpath#g"
 restartsb
 fi
-blue "ConfirmVmessofpathpath：$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[1].transport.path')"
+blue "ConfirmedVmessofpathpath：$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[1].transport.path')"
 sbshare
 else
 changeserv
@@ -3512,10 +3727,14 @@ changeip(){
 v4v6
 chip(){
 rpip=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.outbounds[0].domain_strategy')
-sed -i "111s/$rpip/$rrpip/g" /etc/s-box/sb.json
+[[ "$sbnh" == "1.10" ]] && num=10 || num=11
+sed -i "111s/$rpip/$rrpip/g" /etc/s-box/sb10.json
+sed -i "134s/$rpip/$rrpip/g" /etc/s-box/sb11.json
+rm -rf /etc/s-box/sb.json
+cp /etc/s-box/sb${num}.json /etc/s-box/sb.json
 restartsb
 }
-readp "1. IPV4priority\n2. IPV6priority\n3. onlyIPV4\n4. onlyIPV6\nChoose：" choose
+readp "1. IPV4priority\n2. IPV6priority\n3. onlyIPV4\n4. onlyIPV6\nPlease select：" choose
 if [[ $choose == "1" && -n $v4 ]]; then
 rrpip="prefer_ipv4" && chip && v4_6="IPV4priority($v4)"
 elif [[ $choose == "2" && -n $v6 ]]; then
@@ -3525,16 +3744,16 @@ rrpip="ipv4_only" && chip && v4_6="onlyIPV4($v4)"
 elif [[ $choose == "4" && -n $v6 ]]; then
 rrpip="ipv6_only" && chip && v4_6="onlyIPV6($v6)"
 else 
-red "There is no one you choose at presentIPV4/IPV6address，Or enter an error" && changeip
+red "There is no current existence of your choiceIPV4/IPV6address，Or input error" && changeip
 fi
 blue "Currently replacedIPPriority：${v4_6}" && sb
 }
 
 tgsbshow(){
 echo
-yellow "1：Repossess/set upTelegramRoboticToken、userID"
-yellow "0：Back to the upper level"
-readp "Choose【0-1】：" menu
+yellow "1：Reset/set upTelegramRobot'sToken,userID"
+yellow "0：Return to the upper layer"
+readp "Please select [0-1：" menu
 if [ "$menu" = "1" ]; then
 rm -rf /etc/s-box/sbtg.sh
 readp "enterTelegramrobotToken: " token
@@ -3590,52 +3809,52 @@ message_text_m10=$(echo "$m10")
 message_text_m11=$(echo "$m11")
 MODE=HTML
 URL="https://api.telegram.org/bottelegram_token/sendMessage"
-res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀【 Vless-reality-vision Share link 】：supportv2rayng、nekobox "$'"'"'\n\n'"'"'"${message_text_m1}")
+res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀 Vless-reality-vision Share link ：supportv2rayng,nekobox "$'"'"'\n\n'"'"'"${message_text_m1}")
 if [[ -f /etc/s-box/vm_ws.txt ]]; then
-res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀【 Vmess-ws Share link 】：supportv2rayng、nekobox "$'"'"'\n\n'"'"'"${message_text_m2}")
+res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀 Vmess-ws Share link ：supportv2rayng,nekobox "$'"'"'\n\n'"'"'"${message_text_m2}")
 fi
 if [[ -f /etc/s-box/vm_ws_argols.txt ]]; then
-res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀【 Vmess-ws(tls)+ArgoTemporary domain name sharing link 】：supportv2rayng、nekobox "$'"'"'\n\n'"'"'"${message_text_m3}")
+res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀 Vmess-ws(tls)+ArgoTemporary domain name sharing link ：supportv2rayng,nekobox "$'"'"'\n\n'"'"'"${message_text_m3}")
 fi
 if [[ -f /etc/s-box/vm_ws_argogd.txt ]]; then
-res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀【 Vmess-ws(tls)+ArgoFixed domain name sharing link 】：supportv2rayng、nekobox "$'"'"'\n\n'"'"'"${message_text_m3_5}")
+res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀 Vmess-ws(tls)+ArgoFixed domain name sharing link ：supportv2rayng,nekobox "$'"'"'\n\n'"'"'"${message_text_m3_5}")
 fi
 if [[ -f /etc/s-box/vm_ws_tls.txt ]]; then
-res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀【 Vmess-ws-tls Share link 】：supportv2rayng、nekobox "$'"'"'\n\n'"'"'"${message_text_m4}")
+res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀 Vmess-ws-tls Share link ：supportv2rayng,nekobox "$'"'"'\n\n'"'"'"${message_text_m4}")
 fi
-res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀【 Hysteria-2 Share link 】：supportnekobox "$'"'"'\n\n'"'"'"${message_text_m5}")
-res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀【 Tuic-v5 Share link 】：supportnekobox "$'"'"'\n\n'"'"'"${message_text_m6}")
+res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀 Hysteria-2 Share link ：supportnekobox "$'"'"'\n\n'"'"'"${message_text_m5}")
+res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀 Tuic-v5 Share link ：supportnekobox "$'"'"'\n\n'"'"'"${message_text_m6}")
 
 if [[ -f /etc/s-box/sing_box_gitlab.txt ]]; then
-res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀【 Sing-box Subscription link 】：supportSFA、SFW、SFI "$'"'"'\n\n'"'"'"${message_text_m9}")
+res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀 Sing-box Subscription link ：supportSFA,SFW,SFI "$'"'"'\n\n'"'"'"${message_text_m9}")
 else
-res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀【 Sing-box Configuration file(4part) 】：supportSFA、SFW、SFI "$'"'"'\n\n'"'"'"${message_text_m7}")
+res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀 Sing-box Configuration File(4part) ：supportSFA,SFW,SFI "$'"'"'\n\n'"'"'"${message_text_m7}")
 res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=${message_text_m7_5}")
 res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=${message_text_m7_5_5}")
 res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=${message_text_m7_5_5_5}")
 fi
 
 if [[ -f /etc/s-box/clash_meta_gitlab.txt ]]; then
-res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀【 Clash-meta Subscription link 】：supportClash-metaRelated client "$'"'"'\n\n'"'"'"${message_text_m10}")
+res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀 Clash-meta Subscription link ：supportClash-metaRelated Clients "$'"'"'\n\n'"'"'"${message_text_m10}")
 else
-res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀【 Clash-meta Configuration file(2part) 】：supportClash-metaRelated client "$'"'"'\n\n'"'"'"${message_text_m8}")
+res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀 Clash-meta Configuration File(2part) ：supportClash-metaRelated Clients "$'"'"'\n\n'"'"'"${message_text_m8}")
 res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=${message_text_m8_5}")
 fi
-res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀【 Supreme One Agreement Juggain Subscription Link 】：supportv2rayng、nekobox "$'"'"'\n\n'"'"'"${message_text_m11}")
+res=$(timeout 20s curl -s -X POST $URL -d chat_id=telegram_id  -d parse_mode=${MODE} --data-urlencode "text=🚀 Four-in-one protocol aggregation subscription link ：supportv2rayng,nekobox "$'"'"'\n\n'"'"'"${message_text_m11}")
 
 if [ $? == 124 ];then
-echo TG_apiRequest timeout,Please check whether the network is restarted and can be accessedTG
+echo TG_apiRequest timeout,Please check whether the network restart has been completed and whether it can be accessedTG
 fi
 resSuccess=$(echo "$res" | jq -r ".ok")
 if [[ $resSuccess = "true" ]]; then
-echo "TGSuccessful push";
+echo "TGPush successfully";
 else
-echo "TGPush failure，Check, pleaseTGrobotTokenandID";
+echo "TGPush failed，Check, pleaseTGrobotTokenandID";
 fi
 ' > /etc/s-box/sbtg.sh
 sed -i "s/telegram_token/$telegram_token/g" /etc/s-box/sbtg.sh
 sed -i "s/telegram_id/$telegram_id/g" /etc/s-box/sbtg.sh
-green "Set up complete！Please guaranteeTGThe robot is already activated！"
+green "Settings are complete！Please make sureTGThe robot is already active！"
 tgnotice
 else
 changeserv
@@ -3656,8 +3875,8 @@ exit
 changeserv(){
 sbactive
 echo
-green "Sing-boxThe configuration changes are as follows:"
-readp "1：replaceRealityDomain camouflage address、Switch to the visa and the visaAcmeDomain name certificate、switchTLS\n2：replace全协议UUID(password)、Vmess-Pathpath\n3：set upArgoTemporary tunnel、Fixed tunnel\n4：SwitchIPV4orIPV6Agent priority\n5：set upTelegramPush node notification\n6：replaceWarp-wireguardExit account、Automatically preferablyIP\n7：set upGitlabSubscribe to share link\n8：set up所有VmessNodeCDNPreferred address\n0：Back to the upper level\nChoose【0-8】：" menu
+green "Sing-boxThe configuration change selection is as follows:"
+readp "1：replaceRealityDomain name disguises address, switches self-signed certificates andAcmeDomain name certificate, switchTLS\n2：Replace the full agreementUUID(password),Vmess-Pathpath\n3：set upArgoTemporary tunnels, fixed tunnels\n4：SwitchIPV4orIPV6Agent priority\n5：set upTelegramPush node notifications\n6：replaceWarp-wireguardOutbound account, automatic selection of peersIP\n7：set upGitlabSubscribe to share link\n8：Set allVmessNode'sCDNPreferred address\n0：Return to the upper layer\nPlease select [0-8：" menu
 if [ "$menu" = "1" ];then
 changeym
 elif [ "$menu" = "2" ];then
@@ -3681,34 +3900,34 @@ fi
 
 vmesscfadd(){
 echo
-green "It is recommended to use the official or organization official of the world's large manufacturers or organizationsCDNDomain nameCDNPreferred address："
+green "Recommend using stable world-class manufacturers or organizationsCDNDomain name asCDNPreferred address："
 blue "www.visa.com.sg"
 blue "www.wto.org"
 blue "www.web.com"
 echo
-yellow "1：CustomVmess-ws(tls)Main protocol nodeCDNPreferred address"
-yellow "2：For options1，Reset the clienthost/snidomain name(IPAnalyzeCF上的domain name)"
-yellow "3：CustomVmess-ws(tls)-ArgoNodeCDNPreferred address"
-yellow "0：Back to the upper level"
-readp "Choose【0-3】：" menu
+yellow "1：CustomizeVmess-ws(tls)The master protocol nodeCDNPreferred address"
+yellow "2：For options1，Reset the clienthost/snidomain name(IPparsed toCFDomain name on)"
+yellow "3：CustomizeVmess-ws(tls)-ArgoNode'sCDNPreferred address"
+yellow "0：Return to the upper layer"
+readp "Please select [0-3：" menu
 if [ "$menu" = "1" ]; then
 echo
-green "Please guaranteeVPSofIPHas parsed toCloudflareof域名上"
+green "Please make sureVPSofIPResolved toCloudflareon the domain name"
 if [[ ! -f /etc/s-box/cfymjx.txt ]] 2>/dev/null; then
-readp "Enter the clienthost/snidomain name(IPAnalyzeCF上的domain name)：" menu
+readp "Enter the clienthost/snidomain name(IPparsed toCFDomain name on)：" menu
 echo "$menu" > /etc/s-box/cfymjx.txt
 fi
 echo
-readp "Enter the preferably customizedIP/domain name：" menu
+readp "Enter custom preferredIP/domain name：" menu
 echo "$menu" > /etc/s-box/cfvmadd_local.txt
-green "Successfully set，Select the main menu9Perform node configuration updates" && sleep 2 && vmesscfadd
+green "Setting successfully，Select the main menu9Conduct node configuration updates" && sleep 2 && vmesscfadd
 elif  [ "$menu" = "2" ]; then
 rm -rf /etc/s-box/cfymjx.txt
-green "Reset，Optional1Restart" && sleep 2 && vmesscfadd
+green "Reset successfully，Available1Reset" && sleep 2 && vmesscfadd
 elif  [ "$menu" = "3" ]; then
-readp "Enter the preferably customizedIP/domain name：" menu
+readp "Enter custom preferredIP/domain name：" menu
 echo "$menu" > /etc/s-box/cfvmadd_argo.txt
-green "Successfully set，Select the main menu9Perform node configuration updates" && sleep 2 && vmesscfadd
+green "Setting successfully，Select the main menu9Conduct node configuration updates" && sleep 2 && vmesscfadd
 else
 changeserv
 fi
@@ -3716,20 +3935,20 @@ fi
 
 gitlabsub(){
 echo
-green "Please guaranteeGitlabProjects have been established on the official website，Push function has been turned on，Get access token"
-yellow "1：Repossess/set upGitlabSubscription link"
-yellow "0：Back to the upper level"
-readp "Choose【0-1】：" menu
+green "Please make sureGitlabProjects have been established on the official website，Push function enabled，Access token obtained"
+yellow "1：Reset/set upGitlabSubscription link"
+yellow "0：Return to the upper layer"
+readp "Please select [0-1：" menu
 if [ "$menu" = "1" ]; then
 cd /etc/s-box
-readp "Enter login mailbox: " email
-readp "Enter access token: " token
-readp "Enter the username: " userid
+readp "Enter login email address: " email
+readp "Enter an access token: " token
+readp "Enter a username: " userid
 readp "Enter the project name: " project
 echo
-green "MultiVPSCommon a token and project name，Can create multiple branch subscription links"
-green "Enter the car and skip means that you will not build newly built，Use only the main branchmainSubscription link(First placeVPSIt is recommended)"
-readp "New branch name: " gitlabml
+green "Multiple unitsVPSShare a token and project name，Multiple branch subscription links can be created"
+green "Enter to skip means no new creation，Use only the master branchmainSubscription link(FirstVPSIt is recommended to jump to the carriage)"
+readp "Create a new branch name: " gitlabml
 echo
 if [[ -z "$gitlabml" ]]; then
 gitlab_ml=''
@@ -3767,7 +3986,7 @@ echo "https://gitlab.com/api/v4/projects/${userid}%2F${project}/repository/files
 echo "https://gitlab.com/api/v4/projects/${userid}%2F${project}/repository/files/jh_sub.txt/raw?ref=${git_sk}&private_token=${token}" > /etc/s-box/jh_sub_gitlab.txt
 clsbshow
 else
-yellow "set upGitlabSubscribe link failure，Please feedback"
+yellow "set upGitlabSubscription link failed，Please feedback"
 fi
 cd
 else
@@ -3796,7 +4015,7 @@ cd
 
 clsbshow(){
 green "currentSing-boxThe node has been updated and pushed"
-green "Sing-boxSubscribe to the link as follows："
+green "Sing-boxSubscription link is as follows："
 blue "$(cat /etc/s-box/sing_box_gitlab.txt 2>/dev/null)"
 echo
 green "Sing-boxSubscribe to the QR code as follows："
@@ -3805,7 +4024,7 @@ echo
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo
 green "currentClash-metaNode configuration has been updated and pushed"
-green "Clash-metaSubscribe to the link as follows："
+green "Clash-metaSubscription link is as follows："
 blue "$(cat /etc/s-box/clash_meta_gitlab.txt 2>/dev/null)"
 echo
 green "Clash-metaSubscribe to the QR code as follows："
@@ -3813,11 +4032,11 @@ qrencode -o - -t ANSIUTF8 "$(cat /etc/s-box/clash_meta_gitlab.txt 2>/dev/null)"
 echo
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo
-green "The current aggregation subscription node configuration has been updated and pushed"
-green "Subscribe to the link as follows："
+green "The current aggregate subscription node configuration has been updated and pushed"
+green "Subscription link is as follows："
 blue "$(cat /etc/s-box/jh_sub_gitlab.txt 2>/dev/null)"
 echo
-yellow "You can enter the subscription link on the webpage to view the configuration content，If there is no configuration content，Please self -checkGitlabRelated settings and reset"
+yellow "You can enter the subscription link on the web page to view the configuration content，If there is no configuration，Please check it yourselfGitlabRelated settings and reset"
 echo
 }
 
@@ -3855,9 +4074,9 @@ result
 }
 output=$(warpcode)
 if ! echo "$output" 2>/dev/null | grep -w "private_key" > /dev/null; then
-v6=2606:4700:110:8f20:f22e:2c8d:d8ee:fe7
-pvk=SGU6hx3CJAWGMr6XYoChvnrKV61hxAw2S4VlgBAxzFs=
-res=[15,242,244]
+v6=2606:4700:110:860e:738f:b37:f15:d38d
+pvk=g9I2sgUH6OCbIBTehkEfVEnuvInHYZvPOFhWchMLSc4=
+res=[33,217,129]
 else
 pvk=$(echo "$output" | sed -n 4p | awk '{print $2}' | tr -d ' "' | sed 's/.$//')
 v6=$(echo "$output" | sed -n 7p | awk '{print $2}' | tr -d ' "')
@@ -3869,41 +4088,55 @@ blue "reservedvalue：$res"
 }
 
 changewg(){
+[[ "$sbnh" == "1.10" ]] && num=10 || num=11
+if [[ "$sbnh" == "1.10" ]]; then
 wgipv6=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.outbounds[] | select(.type == "wireguard") | .local_address[1] | split("/")[0]')
-wgprkey=$(sed 's://.*::g' /etc/s-box/sb.json | jq '.outbounds[] | select(.type == "wireguard") | .private_key' | tr -d '"')
+wgprkey=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.outbounds[] | select(.type == "wireguard") | .private_key')
 wgres=$(sed -n '165s/.*\[\(.*\)\].*/\1/p' /etc/s-box/sb.json)
-wgip=$(sed 's://.*::g' /etc/s-box/sb.json | jq '.outbounds[] | select(.type == "wireguard") | .server' | tr -d '"')
-wgpo=$(sed 's://.*::g' /etc/s-box/sb.json | jq '.outbounds[] | select(.type == "wireguard") | .server_port' | tr -d '"')
+wgip=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.outbounds[] | select(.type == "wireguard") | .server')
+wgpo=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.outbounds[] | select(.type == "wireguard") | .server_port')
+else
+wgipv6=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.endpoints[] | .address[1] | split("/")[0]')
+wgprkey=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.endpoints[] | .private_key')
+wgres=$(sed -n '125s/.*\[\(.*\)\].*/\1/p' /etc/s-box/sb.json)
+wgip=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.endpoints[] | .peers[].address')
+wgpo=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.endpoints[] | .peers[].port')
+fi
 echo
 green "currentwarp-wireguardThe replaceable parameters are as follows："
 green "Private_keyPrivate key：$wgprkey"
 green "IPV6address：$wgipv6"
 green "Reservedvalue：$wgres"
-green "PairIP：$wgip:$wgpo"
+green "The opposite sideIP：$wgip:$wgpo"
 echo
 yellow "1：replacewarp-wireguardAccount"
-yellow "2：Automatic preferredwarp-wireguardPairIP"
-yellow "0：Back to the upper level"
-readp "Choose【0-2】：" menu
+yellow "2：Automatically selectedwarp-wireguardThe opposite sideIP"
+yellow "0：Return to the upper layer"
+readp "Please select [0-2：" menu
 if [ "$menu" = "1" ]; then
-green "The latest random generation is ordinarywarp-wireguardThe account is as follows"
+green "Latest random generation normalwarp-wireguardThe account is as follows"
 warpwg
 echo
 readp "Enter customPrivate_key：" menu
-sed -i "163s#$wgprkey#$menu#g" /etc/s-box/sb.json
+sed -i "163s#$wgprkey#$menu#g" /etc/s-box/sb10.json
+sed -i "115s#$wgprkey#$menu#g" /etc/s-box/sb11.json
 readp "Enter customIPV6address：" menu
-sed -i "161s/$wgipv6/$menu/g" /etc/s-box/sb.json
-readp "Enter customReservedvalue (Format：number,number,number)，如无value则回车跳过：" menu
+sed -i "161s/$wgipv6/$menu/g" /etc/s-box/sb10.json
+sed -i "113s/$wgipv6/$menu/g" /etc/s-box/sb11.json
+readp "Enter customReservedvalue (Format：number,number,number)，If there is no value, press Enter and skip：" menu
 if [ -z "$menu" ]; then
 menu=0,0,0
 fi
-sed -i "165s/$wgres/$menu/g" /etc/s-box/sb.json
+sed -i "165s/$wgres/$menu/g" /etc/s-box/sb10.json
+sed -i "125s/$wgres/$menu/g" /etc/s-box/sb11.json
+rm -rf /etc/s-box/sb.json
+cp /etc/s-box/sb${num}.json /etc/s-box/sb.json
 restartsb
-green "Settling"
-green "Can be used first5-1or5-2Use the full domain name diversion：cloudflare.com"
-green "Then use any node to open the webpagehttps://cloudflare.com/cdn-cgi/trace，Check the currentWARPAccount type"
+green "Setting ends"
+green "You can first place the option5-1or5-2Use full domain name diversion：cloudflare.com"
+green "Then use any node to open the web pagehttps://cloudflare.com/cdn-cgi/trace，View the currentWARPAccount Type"
 elif  [ "$menu" = "2" ]; then
-green "Please wait……Update……"
+green "Please wait……Updating……"
 if [ -z $(curl -s4m5 icanhazip.com -k) ]; then
 curl -sSL https://gitlab.com/rwkgyg/CFwarp/raw/main/point/endip.sh -o endip.sh && chmod +x endip.sh && (echo -e "1\n2\n") | bash endip.sh > /dev/null 2>&1
 nwgip=$(awk -F, 'NR==2 {print $1}' /root/result.csv 2>/dev/null | grep -o '\[.*\]' | tr -d '[]')
@@ -3923,12 +4156,16 @@ nwgip=162.159.192.1
 nwgpo=2408
 fi
 fi
-sed -i "157s#$wgip#$nwgip#g" /etc/s-box/sb.json
-sed -i "158s#$wgpo#$nwgpo#g" /etc/s-box/sb.json
+sed -i "157s#$wgip#$nwgip#g" /etc/s-box/sb10.json
+sed -i "158s#$wgpo#$nwgpo#g" /etc/s-box/sb10.json
+sed -i "118s#$wgip#$nwgip#g" /etc/s-box/sb11.json
+sed -i "119s#$wgpo#$nwgpo#g" /etc/s-box/sb11.json
+rm -rf /etc/s-box/sb.json
+cp /etc/s-box/sb${num}.json /etc/s-box/sb.json
 restartsb
 rm -rf /root/result.csv /root/endip.sh 
 echo
-green "Preferred，The currently used confrontationIP：$nwgip:$nwgpo"
+green "The selection is completed，The current peer usedIP：$nwgip:$nwgpo"
 else
 changeserv
 fi
@@ -3940,11 +4177,11 @@ sbport=${sbport:-'40000'}
 resv1=$(curl -s --socks5 localhost:$sbport icanhazip.com)
 resv2=$(curl -sx socks5h://localhost:$sbport icanhazip.com)
 if [[ -z $resv1 && -z $resv2 ]]; then
-warp_s4_ip='Socks5-IPV4Not start，Blacklist mode'
-warp_s6_ip='Socks5-IPV6Not start，Blacklist mode'
+warp_s4_ip='Socks5-IPV4Not started，Blacklist mode'
+warp_s6_ip='Socks5-IPV6Not started，Blacklist mode'
 else
 warp_s4_ip='Socks5-IPV4Available'
-warp_s6_ip='Socks5-IPV6Self -test'
+warp_s6_ip='Socks5-IPV6Self-test'
 fi
 v4v6
 if [[ -z $v4 ]]; then
@@ -3961,7 +4198,7 @@ unset swg4 swd4 swd6 swg6 ssd4 ssg4 ssd6 ssg6 sad4 sag4 sad6 sag6
 wd4=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.route.rules[1].domain | join(" ")')
 wg4=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.route.rules[1].geosite | join(" ")' 2>/dev/null)
 if [[ "$wd4" == "yg_kkk" && ("$wg4" == "yg_kkk" || -z "$wg4") ]]; then
-wfl4="${yellow}【warpLeave the stationIPV4Available】Unproof${plain}"
+wfl4="${yellow}warpExitIPV4Available】Undiverted${plain}"
 else
 if [[ "$wd4" != "yg_kkk" ]]; then
 swd4="$wd4 "
@@ -3969,13 +4206,13 @@ fi
 if [[ "$wg4" != "yg_kkk" ]]; then
 swg4=$wg4
 fi
-wfl4="${yellow}【warpLeave the stationIPV4Available】Diverted：$swd4$swg4${plain} "
+wfl4="${yellow}warpExitIPV4Available】Distributed：$swd4$swg4${plain} "
 fi
 
 wd6=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.route.rules[2].domain | join(" ")')
 wg6=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.route.rules[2].geosite | join(" ")' 2>/dev/null)
 if [[ "$wd6" == "yg_kkk" && ("$wg6" == "yg_kkk"|| -z "$wg6") ]]; then
-wfl6="${yellow}【warpLeave the stationIPV6Self -test】Unproof${plain}"
+wfl6="${yellow}warpExitIPV6Self-test】Not diverted${plain}"
 else
 if [[ "$wd6" != "yg_kkk" ]]; then
 swd6="$wd6 "
@@ -3983,13 +4220,13 @@ fi
 if [[ "$wg6" != "yg_kkk" ]]; then
 swg6=$wg6
 fi
-wfl6="${yellow}【warpLeave the stationIPV6Self -test】Diverted：$swd6$swg6${plain} "
+wfl6="${yellow}warpExitIPV6Self-test】Distributed：$swd6$swg6${plain} "
 fi
 
 sd4=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.route.rules[3].domain | join(" ")')
 sg4=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.route.rules[3].geosite | join(" ")' 2>/dev/null)
 if [[ "$sd4" == "yg_kkk" && ("$sg4" == "yg_kkk" || -z "$sg4") ]]; then
-sfl4="${yellow}【$warp_s4_ip】Unproof${plain}"
+sfl4="${yellow}$warp_s4_ip】Undivided${plain}"
 else
 if [[ "$sd4" != "yg_kkk" ]]; then
 ssd4="$sd4 "
@@ -3997,13 +4234,13 @@ fi
 if [[ "$sg4" != "yg_kkk" ]]; then
 ssg4=$sg4
 fi
-sfl4="${yellow}【$warp_s4_ip】Diverted：$ssd4$ssg4${plain} "
+sfl4="${yellow}$warp_s4_ip】Distributed：$ssd4$ssg4${plain} "
 fi
 
 sd6=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.route.rules[4].domain | join(" ")')
 sg6=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.route.rules[4].geosite | join(" ")' 2>/dev/null)
 if [[ "$sd6" == "yg_kkk" && ("$sg6" == "yg_kkk" || -z "$sg6") ]]; then
-sfl6="${yellow}【$warp_s6_ip】Unproof${plain}"
+sfl6="${yellow}$warp_s6_ip】Undivided${plain}"
 else
 if [[ "$sd6" != "yg_kkk" ]]; then
 ssd6="$sd6 "
@@ -4011,13 +4248,13 @@ fi
 if [[ "$sg6" != "yg_kkk" ]]; then
 ssg6=$sg6
 fi
-sfl6="${yellow}【$warp_s6_ip】Diverted：$ssd6$ssg6${plain} "
+sfl6="${yellow}$warp_s6_ip】Distributed：$ssd6$ssg6${plain} "
 fi
 
 ad4=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.route.rules[5].domain | join(" ")')
 ag4=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.route.rules[5].geosite | join(" ")' 2>/dev/null)
 if [[ "$ad4" == "yg_kkk" && ("$ag4" == "yg_kkk" || -z "$ag4") ]]; then
-adfl4="${yellow}【$vps_ipv4】Unproof${plain}" 
+adfl4="${yellow}$vps_ipv4】Undivided${plain}" 
 else
 if [[ "$ad4" != "yg_kkk" ]]; then
 sad4="$ad4 "
@@ -4025,13 +4262,13 @@ fi
 if [[ "$ag4" != "yg_kkk" ]]; then
 sag4=$ag4
 fi
-adfl4="${yellow}【$vps_ipv4】Diverted：$sad4$sag4${plain} "
+adfl4="${yellow}$vps_ipv4】Distributed：$sad4$sag4${plain} "
 fi
 
 ad6=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.route.rules[6].domain | join(" ")')
 ag6=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.route.rules[6].geosite | join(" ")' 2>/dev/null)
 if [[ "$ad6" == "yg_kkk" && ("$ag6" == "yg_kkk" || -z "$ag6") ]]; then
-adfl6="${yellow}【$vps_ipv6】Unproof${plain}" 
+adfl6="${yellow}$vps_ipv6】Undivided${plain}" 
 else
 if [[ "$ad6" != "yg_kkk" ]]; then
 sad6="$ad6 "
@@ -4039,228 +4276,247 @@ fi
 if [[ "$ag6" != "yg_kkk" ]]; then
 sag6=$ag6
 fi
-adfl6="${yellow}【$vps_ipv6】Diverted：$sad6$sag6${plain} "
+adfl6="${yellow}$vps_ipv6】Distributed：$sad6$sag6${plain} "
 fi
 }
 
 changefl(){
 sbactive
-green "Uniform domain name diversion of all protocols"
-yellow "warp-wireguardBy default，IPV4andIPV6Available (Option1and2)"
-yellow "socks5Need inVPSInstallwarpOfficial client orWARP-plus-Socks5-GestureVPN (Option3and4)"
-yellow "VPSLocal outbound diversion(Option5and6)"
+blue "Unified domain name diversion for all protocols"
+blue "To ensure that shunts are available，Double stackIP（IPV4/IPV6）Split mode is the priority mode"
+blue "warp-wireguardOn by default (Options1and2)"
+blue "socks5Need to be inVPSInstallwarpOfficial client orWARP-plus-Socks5-SaifengVPN (Options3and4)"
+blue "VPSLocal outbound diversion(Options5and6)"
 echo
-sbnh=$(/etc/s-box/sing-box version | awk '/version/{print $NF}' | cut -d '.' -f 1,2)
-[ $sbnh = 1.10 ] && blue "Congratulations！currentSing-boxCore supportgeositeDiversion" || blue "Pity！currentSing-boxThe kernel does not supportgeositeDiversion。If you want to support，Please switch1.10Series kernel"
+[[ "$sbnh" == "1.10" ]] && blue "currentSing-boxKernel supportgeositeDiversion method" || blue "currentSing-boxThe kernel does not support itgeositeDiversion method，Only diversion is supported2,3,5,6Options"
+echo
 yellow "Notice："
-yellow "one、Full domain name method can only fill in the full domain name (example：Google website fill in：www.google.com)"
-yellow "two、geositeMethods must be filled ingeositeRules (example：Naifei fill in：netflix ；Disney fill in：disney ；ChatGPTfill in：openai ；全局且绕过中国fill in：geolocation-!cn)"
-yellow "three、The same complete domain name orgeositeDo not repeat the diversion"
-yellow "Four、If this diversion channel has no network，The diversion is the blacklist mode，That is to block the website access"
+yellow "1. The complete domain name method can only fill in the complete domain name (example：Fill in the Google website：www.google.com)"
+yellow "two,geositeThe method must be filled ingeositeRule name (example：Netflix fill in:netflix ；Disney fill in:disney ；ChatGPTfill in:openai ；Fill in the whole picture and bypass China:geolocation-!cn)"
+yellow "3. The same complete domain name orgeositeNever repeat diversion"
+yellow "4. If there are some channels in the diversion channel without a network，The filled-in diversion is blacklist mode，That is, block access to this website"
 changef
 }
 
 changef(){
-sbnh=$(/etc/s-box/sing-box version | awk '/version/{print $NF}' | cut -d '.' -f 1,2)
+[[ "$sbnh" == "1.10" ]] && num=10 || num=11
 sbymfl
 echo
-green "1：Repossesswarp-wireguard-ipv4Watershed $wfl4"
-green "2：Repossesswarp-wireguard-ipv6Watershed $wfl6"
-green "3：Repossesswarp-socks5-ipv4Watershed $sfl4"
-green "4：Repossesswarp-socks5-ipv6Watershed $sfl6"
-green "5：RepossessVPSlocalipv4Watershed $adfl4"
-green "6：RepossessVPSlocalipv6Watershed $adfl6"
-green "0：Back to the upper level"
+if [[ "$sbnh" != "1.10" ]]; then
+wfl4='Not supported yet'
+sfl6='Not supported yet'
+fi
+green "1：Resetwarp-wireguard-ipv4Priority dividing of basin names $wfl4"
+green "2：Resetwarp-wireguard-ipv6Priority dividing of basin names $wfl6"
+green "3：Resetwarp-socks5-ipv4Priority dividing of basin names $sfl4"
+green "4：Resetwarp-socks5-ipv6Priority dividing of basin names $sfl6"
+green "5：ResetVPSlocalipv4Priority dividing of basin names $adfl4"
+green "6：ResetVPSlocalipv6Priority dividing of basin names $adfl6"
+green "0：Return to the upper layer"
 echo
-readp "Choose【0-6】：" menu
+readp "Please select [0-6：" menu
 
 if [ "$menu" = "1" ]; then
-readp "1：Use the full domain name method\n2：usegeositeWay\n3：Back to the upper level\nChoose：" menu
+if [[ "$sbnh" == "1.10" ]]; then
+readp "1：Use the full domain name\n2：usegeositeWay\n3：Return to the upper layer\nPlease select：" menu
 if [ "$menu" = "1" ]; then
-readp "Leave a lattice between each domain name，Enter the car and skip indicating the resetting emptinesswarp-wireguard-ipv4Diversion channel for the full domain name method)：" w4flym
+readp "Leave spaces between each domain name，Enter to skip means reset and clearwarp-wireguard-ipv4The complete domain name method of diversion channel)：" w4flym
 if [ -z "$w4flym" ]; then
 w4flym='"yg_kkk"'
 else
 w4flym="$(echo "$w4flym" | sed 's/ /","/g')"
 w4flym="\"$w4flym\""
 fi
-sed -i "184s/.*/$w4flym/" /etc/s-box/sb.json
+sed -i "184s/.*/$w4flym/" /etc/s-box/sb.json /etc/s-box/sb10.json
 restartsb
 changef
 elif [ "$menu" = "2" ]; then
-if [ $sbnh = 1.10 ]; then
-readp "Leave a lattice between each domain name，Enter the car and skip indicating the resetting emptinesswarp-wireguard-ipv4ofgeosite方式of分流通道)：" w4flym
+readp "Leave spaces between each domain name，Enter to skip means reset and clearwarp-wireguard-ipv4ofgeositeSplitting channel in mode)：" w4flym
 if [ -z "$w4flym" ]; then
 w4flym='"yg_kkk"'
 else
 w4flym="$(echo "$w4flym" | sed 's/ /","/g')"
 w4flym="\"$w4flym\""
 fi
-sed -i "187s/.*/$w4flym/" /etc/s-box/sb.json
+sed -i "187s/.*/$w4flym/" /etc/s-box/sb.json /etc/s-box/sb10.json
 restartsb
 changef
 else
-yellow "Pity！currentSing-boxThe kernel does not supportgeositeDiversion。If you want to support，Please switch1.10Series kernel" && exit
+changef
 fi
 else
-changef
+yellow "Pity！Currently only supportedwarp-wireguard-ipv6，If requiredwarp-wireguard-ipv4，Please switch1.10Series core" && exit
 fi
 
 elif [ "$menu" = "2" ]; then
-readp "1：Use the full domain name method\n2：usegeositeWay\n3：Back to the upper level\nChoose：" menu
+readp "1：Use the full domain name\n2：usegeositeWay\n3：Return to the upper layer\nPlease select：" menu
 if [ "$menu" = "1" ]; then
-readp "Leave a lattice between each domain name，Enter the car and skip indicating the resetting emptinesswarp-wireguard-ipv6Diversion channel for the full domain name method：" w6flym
+readp "Leave spaces between each domain name，Enter to skip means reset and clearwarp-wireguard-ipv6The complete domain name method of diversion channel：" w6flym
 if [ -z "$w6flym" ]; then
 w6flym='"yg_kkk"'
 else
 w6flym="$(echo "$w6flym" | sed 's/ /","/g')"
 w6flym="\"$w6flym\""
 fi
-sed -i "193s/.*/$w6flym/" /etc/s-box/sb.json
+sed -i "193s/.*/$w6flym/" /etc/s-box/sb10.json
+sed -i "169s/.*/$w6flym/" /etc/s-box/sb11.json
+sed -i "181s/.*/$w6flym/" /etc/s-box/sb11.json
+rm -rf /etc/s-box/sb.json
+cp /etc/s-box/sb${num}.json /etc/s-box/sb.json
 restartsb
 changef
 elif [ "$menu" = "2" ]; then
-if [ $sbnh = 1.10 ]; then
-readp "Leave a lattice between each domain name，Enter the car and skip indicating the resetting emptinesswarp-wireguard-ipv6ofgeosite方式of分流通道：" w6flym
+if [[ "$sbnh" == "1.10" ]]; then
+readp "Leave spaces between each domain name，Enter to skip means reset and clearwarp-wireguard-ipv6ofgeositeSplitting channel in mode：" w6flym
 if [ -z "$w6flym" ]; then
 w6flym='"yg_kkk"'
 else
 w6flym="$(echo "$w6flym" | sed 's/ /","/g')"
 w6flym="\"$w6flym\""
 fi
-sed -i "196s/.*/$w6flym/" /etc/s-box/sb.json
+sed -i "196s/.*/$w6flym/" /etc/s-box/sb.json /etc/s-box/sb10.json
 restartsb
 changef
 else
-yellow "Pity！currentSing-boxThe kernel does not supportgeositeDiversion。If you want to support，Please switch1.10Series kernel" && exit
+yellow "Pity！currentSing-boxThe kernel does not support itgeositeDiversion method. If you want to support，Please switch1.10Series core" && exit
 fi
 else
 changef
 fi
 
 elif [ "$menu" = "3" ]; then
-readp "1：Use the full domain name method\n2：usegeositeWay\n3：Back to the upper level\nChoose：" menu
+readp "1：Use the full domain name\n2：usegeositeWay\n3：Return to the upper layer\nPlease select：" menu
 if [ "$menu" = "1" ]; then
-readp "Leave a lattice between each domain name，Enter the car and skip indicating the resetting emptinesswarp-socks5-ipv4Diversion channel for the full domain name method：" s4flym
+readp "Leave spaces between each domain name，Enter to skip means reset and clearwarp-socks5-ipv4The complete domain name method of diversion channel：" s4flym
 if [ -z "$s4flym" ]; then
 s4flym='"yg_kkk"'
 else
 s4flym="$(echo "$s4flym" | sed 's/ /","/g')"
 s4flym="\"$s4flym\""
 fi
-sed -i "202s/.*/$s4flym/" /etc/s-box/sb.json
+sed -i "202s/.*/$s4flym/" /etc/s-box/sb10.json
+sed -i "162s/.*/$s4flym/" /etc/s-box/sb11.json
+sed -i "175s/.*/$s4flym/" /etc/s-box/sb11.json
+rm -rf /etc/s-box/sb.json
+cp /etc/s-box/sb${num}.json /etc/s-box/sb.json
 restartsb
 changef
 elif [ "$menu" = "2" ]; then
-if [ $sbnh = 1.10 ]; then
-readp "Leave a lattice between each domain name，Enter the car and skip indicating the resetting emptinesswarp-socks5-ipv4ofgeosite方式of分流通道：" s4flym
+if [[ "$sbnh" == "1.10" ]]; then
+readp "Leave spaces between each domain name，Enter to skip means reset and clearwarp-socks5-ipv4ofgeositeSplitting channel in mode：" s4flym
 if [ -z "$s4flym" ]; then
 s4flym='"yg_kkk"'
 else
 s4flym="$(echo "$s4flym" | sed 's/ /","/g')"
 s4flym="\"$s4flym\""
 fi
-sed -i "205s/.*/$s4flym/" /etc/s-box/sb.json
+sed -i "205s/.*/$s4flym/" /etc/s-box/sb.json /etc/s-box/sb10.json
 restartsb
 changef
 else
-yellow "Pity！currentSing-boxThe kernel does not supportgeositeDiversion。If you want to support，Please switch1.10Series kernel" && exit
+yellow "Pity！currentSing-boxThe kernel does not support itgeositeDiversion method. If you want to support，Please switch1.10Series core" && exit
 fi
 else
 changef
 fi
 
 elif [ "$menu" = "4" ]; then
-readp "1：Use the full domain name method\n2：usegeositeWay\n3：Back to the upper level\nChoose：" menu
+if [[ "$sbnh" == "1.10" ]]; then
+readp "1：Use the full domain name\n2：usegeositeWay\n3：Return to the upper layer\nPlease select：" menu
 if [ "$menu" = "1" ]; then
-readp "Leave a lattice between each domain name，Enter the car and skip indicating the resetting emptinesswarp-socks5-ipv6Diversion channel for the full domain name method：" s6flym
+readp "Leave spaces between each domain name，Enter to skip means reset and clearwarp-socks5-ipv6The complete domain name method of diversion channel：" s6flym
 if [ -z "$s6flym" ]; then
 s6flym='"yg_kkk"'
 else
 s6flym="$(echo "$s6flym" | sed 's/ /","/g')"
 s6flym="\"$s6flym\""
 fi
-sed -i "211s/.*/$s6flym/" /etc/s-box/sb.json
+sed -i "211s/.*/$s6flym/" /etc/s-box/sb.json /etc/s-box/sb10.json
 restartsb
 changef
 elif [ "$menu" = "2" ]; then
-if [ $sbnh = 1.10 ]; then
-readp "Leave a lattice between each domain name，Enter the car and skip indicating the resetting emptinesswarp-socks5-ipv6ofgeosite方式of分流通道：" s6flym
+readp "Leave spaces between each domain name，Enter to skip means reset and clearwarp-socks5-ipv6ofgeositeSplitting channel in mode：" s6flym
 if [ -z "$s6flym" ]; then
 s6flym='"yg_kkk"'
 else
 s6flym="$(echo "$s6flym" | sed 's/ /","/g')"
 s6flym="\"$s6flym\""
 fi
-sed -i "214s/.*/$s6flym/" /etc/s-box/sb.json
+sed -i "214s/.*/$s6flym/" /etc/s-box/sb.json /etc/s-box/sb10.json
 restartsb
 changef
 else
-yellow "Pity！currentSing-boxThe kernel does not supportgeositeDiversion。If you want to support，Please switch1.10Series kernel" && exit
+changef
 fi
 else
-changef
+yellow "Pity！Currently only supportedwarp-socks5-ipv4，If requiredwarp-socks5-ipv6，Please switch1.10Series core" && exit
 fi
 
 elif [ "$menu" = "5" ]; then
-readp "1：Use the full domain name method\n2：usegeositeWay\n3：Back to the upper level\nChoose：" menu
+readp "1：Use the full domain name\n2：usegeositeWay\n3：Return to the upper layer\nPlease select：" menu
 if [ "$menu" = "1" ]; then
-readp "Leave a lattice between each domain name，Enter the car and skip indicating the resetting emptinessVPSlocalipv4Diversion channel for the full domain name method：" ad4flym
+readp "Leave spaces between each domain name，Enter to skip means reset and clearVPSlocalipv4The complete domain name method of diversion channel：" ad4flym
 if [ -z "$ad4flym" ]; then
 ad4flym='"yg_kkk"'
 else
 ad4flym="$(echo "$ad4flym" | sed 's/ /","/g')"
 ad4flym="\"$ad4flym\""
 fi
-sed -i "220s/.*/$ad4flym/" /etc/s-box/sb.json
+sed -i "220s/.*/$ad4flym/" /etc/s-box/sb10.json
+sed -i "188s/.*/$ad4flym/" /etc/s-box/sb11.json
+rm -rf /etc/s-box/sb.json
+cp /etc/s-box/sb${num}.json /etc/s-box/sb.json
 restartsb
 changef
 elif [ "$menu" = "2" ]; then
-if [ $sbnh = 1.10 ]; then
-readp "Leave a lattice between each domain name，Enter the car and skip indicating the resetting emptinessVPSlocalipv4ofgeosite方式of分流通道：" ad4flym
+if [[ "$sbnh" == "1.10" ]]; then
+readp "Leave spaces between each domain name，Enter to skip means reset and clearVPSlocalipv4ofgeositeSplitting channel in mode：" ad4flym
 if [ -z "$ad4flym" ]; then
 ad4flym='"yg_kkk"'
 else
 ad4flym="$(echo "$ad4flym" | sed 's/ /","/g')"
 ad4flym="\"$ad4flym\""
 fi
-sed -i "223s/.*/$ad4flym/" /etc/s-box/sb.json
+sed -i "223s/.*/$ad4flym/" /etc/s-box/sb.json /etc/s-box/sb10.json
 restartsb
 changef
 else
-yellow "Pity！currentSing-boxThe kernel does not supportgeositeDiversion。If you want to support，Please switch1.10Series kernel" && exit
+yellow "Pity！currentSing-boxThe kernel does not support itgeositeDiversion method. If you want to support，Please switch1.10Series core" && exit
 fi
 else
 changef
 fi
 
 elif [ "$menu" = "6" ]; then
-readp "1：Use the full domain name method\n2：usegeositeWay\n3：Back to the upper level\nChoose：" menu
+readp "1：Use the full domain name\n2：usegeositeWay\n3：Return to the upper layer\nPlease select：" menu
 if [ "$menu" = "1" ]; then
-readp "Leave a lattice between each domain name，Enter the car and skip indicating the resetting emptinessVPSlocalipv6Diversion channel for the full domain name method：" ad6flym
+readp "Leave spaces between each domain name，Enter to skip means reset and clearVPSlocalipv6The complete domain name method of diversion channel：" ad6flym
 if [ -z "$ad6flym" ]; then
 ad6flym='"yg_kkk"'
 else
 ad6flym="$(echo "$ad6flym" | sed 's/ /","/g')"
 ad6flym="\"$ad6flym\""
 fi
-sed -i "229s/.*/$ad6flym/" /etc/s-box/sb.json
+sed -i "229s/.*/$ad6flym/" /etc/s-box/sb10.json
+sed -i "194s/.*/$ad6flym/" /etc/s-box/sb11.json
+rm -rf /etc/s-box/sb.json
+cp /etc/s-box/sb${num}.json /etc/s-box/sb.json
 restartsb
 changef
 elif [ "$menu" = "2" ]; then
-if [ $sbnh = 1.10 ]; then
-readp "Leave a lattice between each domain name，Enter the car and skip indicating the resetting emptinessVPSlocalipv6ofgeosite方式of分流通道：" ad6flym
+if [[ "$sbnh" == "1.10" ]]; then
+readp "Leave spaces between each domain name，Enter to skip means reset and clearVPSlocalipv6ofgeositeSplitting channel in mode：" ad6flym
 if [ -z "$ad6flym" ]; then
 ad6flym='"yg_kkk"'
 else
 ad6flym="$(echo "$ad6flym" | sed 's/ /","/g')"
 ad6flym="\"$ad6flym\""
 fi
-sed -i "232s/.*/$ad6flym/" /etc/s-box/sb.json
+sed -i "232s/.*/$ad6flym/" /etc/s-box/sb.json /etc/s-box/sb10.json
 restartsb
 changef
 else
-yellow "Pity！currentSing-boxThe kernel does not supportgeositeDiversion。If you want to support，Please switch1.10Series kernel" && exit
+yellow "Pity！currentSing-boxThe kernel does not support itgeositeDiversion method. If you want to support，Please switch1.10Series core" && exit
 fi
 else
 changef
@@ -4282,13 +4538,13 @@ fi
 
 stclre(){
 if [[ ! -f '/etc/s-box/sb.json' ]]; then
-red "Nonally installedSing-box" && exit
+red "Not installed normallySing-box" && exit
 fi
-readp "1：Restart\n2：closure\nChoose：" menu
+readp "1：Restart\n2：closure\nPlease select：" menu
 if [ "$menu" = "1" ]; then
 restartsb
 sbactive
-green "Sing-boxThe service has restarted\n" && sleep 3 && sb
+green "Sing-boxService has been restarted\n" && sleep 3 && sb
 elif [ "$menu" = "2" ]; then
 if [[ x"${release}" == x"alpine" ]]; then
 rc-service sing-box stop
@@ -4296,7 +4552,7 @@ else
 systemctl stop sing-box
 systemctl disable sing-box
 fi
-green "Sing-boxThe service has been closed\n" && sleep 3 && sb
+green "Sing-boxService has been closed\n" && sleep 3 && sb
 else
 stclre
 fi
@@ -4327,11 +4583,11 @@ chmod +x /usr/bin/sb
 
 upsbyg(){
 if [[ ! -f '/usr/bin/sb' ]]; then
-red "Nonally installedSing-box-yg" && exit
+red "Not installed normallySing-box-yg" && exit
 fi
 lnsb
 curl -sL https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/version | awk -F "Update content" '{print $1}' | head -n 1 > /etc/s-box/v
-green "Sing-box-ygThe installation script upgrade successfully" && sleep 5 && sb
+green "Sing-box-ygThe installation script is successfully upgraded" && sleep 5 && sb
 }
 
 lapre(){
@@ -4343,27 +4599,27 @@ inscore=$(/etc/s-box/sing-box version 2>/dev/null | awk '/version/{print $NF}')
 upsbcroe(){
 sbactive
 lapre
-[[ $inscore =~ ^[0-9.]+$ ]] && lat="【Installedv$inscore】" || pre="【Installedv$inscore】"
+[[ $inscore =~ ^[0-9.]+$ ]] && lat="【installedv$inscore" || pre="【installedv$inscore"
 green "1：upgrade/SwitchSing-boxLatest official version v$latcore  ${bblue}${lat}${plain}"
-green "2：upgrade/SwitchSing-boxLatest test version v$precore  ${bblue}${pre}${plain}"
-green "3：SwitchSing-boxA formal version or test version，Need to specify the version number (suggestion1.10.0The above version)"
-green "0：Back to the upper level"
-readp "Choose【0-3】：" menu
+green "2：upgrade/SwitchSing-boxLatest beta version v$precore  ${bblue}${pre}${plain}"
+green "3：SwitchSing-boxA formal or beta version，Requires a version number (suggestion1.10.0The above version)"
+green "0：Return to the upper layer"
+readp "Please select [0-3：" menu
 if [ "$menu" = "1" ]; then
 upcore=$(curl -Ls https://data.jsdelivr.com/v1/package/gh/SagerNet/sing-box | grep -Eo '"[0-9.]+",' | sed -n 1p | tr -d '",')
 elif [ "$menu" = "2" ]; then
 upcore=$(curl -Ls https://data.jsdelivr.com/v1/package/gh/SagerNet/sing-box | grep -Eo '"[0-9.]*-[^"]*"' | sed -n 1p | tr -d '",')
 elif [ "$menu" = "3" ]; then
 echo
-red "Notice: Version number is https://github.com/SagerNet/sing-box/tags Check，HaveDownloadsWord (suggestion1.10.0The above version)"
-green "Formal version number format：number.number.number (example：1.10.0   Notice，1.10Series kernel supportgeositeDiversion，1.10The above version does not supportgeositeDiversion)"
-green "Test version number format：number.number.number-alphaorrcorbeta.number (example：1.10.0-alphaorrcorbeta.1)"
+red "Notice: Version number is https://github.com/SagerNet/sing-box/tags Can be checked，And there isDownloadsWords (must1.10.0The above version)"
+green "Official version number format：number.number.number (example：1.10.7   Notice，1.10Series kernel supportgeositeDiversion，1.10The above kernel does not support itgeositeDiversion"
+green "Beta version number format：number.number.number-alphaorrcorbeta.number (example：1.10.0-alphaorrcorbeta.1)"
 readp "Please enterSing-boxVersion number：" upcore
 else
 sb
 fi
 if [[ -n $upcore ]]; then
-green "Start download and updateSing-boxCore……Please wait"
+green "Start downloading and updatingSing-boxKernel……Please wait"
 sbname="sing-box-$upcore-linux-$cpu"
 curl -L -o /etc/s-box/sing-box.tar.gz  -# --retry 2 https://github.com/SagerNet/sing-box/releases/download/v$upcore/$sbname.tar.gz
 if [[ -f '/etc/s-box/sing-box.tar.gz' ]]; then
@@ -4373,62 +4629,20 @@ rm -rf /etc/s-box/{sing-box.tar.gz,$sbname}
 if [[ -f '/etc/s-box/sing-box' ]]; then
 chown root:root /etc/s-box/sing-box
 chmod +x /etc/s-box/sing-box
-sbnh110yn
+sbnh=$(/etc/s-box/sing-box version 2>/dev/null | awk '/version/{print $NF}' | cut -d '.' -f 1,2)
+[[ "$sbnh" == "1.10" ]] && num=10 || num=11
+rm -rf /etc/s-box/sb.json
+cp /etc/s-box/sb${num}.json /etc/s-box/sb.json
 restartsb
-blue "Successfully upgrade/Switch Sing-box Kernel version：$(/etc/s-box/sing-box version | awk '/version/{print $NF}')" && sleep 3 && sb
+blue "Successfully upgraded/Switch Sing-box Kernel version：$(/etc/s-box/sing-box version | awk '/version/{print $NF}')" && sleep 3 && sb
 else
-red "download Sing-box Kernel incomplete，Failed to install，Please repeat" && upsbcroe
+red "download Sing-box The kernel is incomplete，Installation failed，Please try again" && upsbcroe
 fi
 else
-red "download Sing-box The kernel fails or does not exist，Please repeat" && upsbcroe
+red "download Sing-box Kernel failed or did not exist，Please try again" && upsbcroe
 fi
 else
-red "Version number detection error，Please repeat" && upsbcroe
-fi
-}
-
-sbnh110yn(){
-sbnh=$(/etc/s-box/sing-box version | awk '/version/{print $NF}' | cut -d '.' -f 1,2)
-if [ $sbnh = 1.10 ]; then
-sed -i '186s/^\/\///' /etc/s-box/sb.json
-sed -i '187s/^\/\///' /etc/s-box/sb.json
-sed -i '188s/^\/\///' /etc/s-box/sb.json
-sed -i '195s/^\/\///' /etc/s-box/sb.json
-sed -i '196s/^\/\///' /etc/s-box/sb.json
-sed -i '197s/^\/\///' /etc/s-box/sb.json
-sed -i '204s/^\/\///' /etc/s-box/sb.json
-sed -i '205s/^\/\///' /etc/s-box/sb.json
-sed -i '206s/^\/\///' /etc/s-box/sb.json
-sed -i '213s/^\/\///' /etc/s-box/sb.json
-sed -i '214s/^\/\///' /etc/s-box/sb.json
-sed -i '215s/^\/\///' /etc/s-box/sb.json
-sed -i '222s/^\/\///' /etc/s-box/sb.json
-sed -i '223s/^\/\///' /etc/s-box/sb.json
-sed -i '224s/^\/\///' /etc/s-box/sb.json
-sed -i '231s/^\/\///' /etc/s-box/sb.json
-sed -i '232s/^\/\///' /etc/s-box/sb.json
-sed -i '233s/^\/\///' /etc/s-box/sb.json
-yellow "currentSing-boxThe kernel version is1.10series，geositeDiversion mode is available"
-else
-sed -i '186s/^\([^\/]\)/\/\/\1/' /etc/s-box/sb.json
-sed -i '187s/^\([^\/]\)/\/\/\1/' /etc/s-box/sb.json
-sed -i '188s/^\([^\/]\)/\/\/\1/' /etc/s-box/sb.json
-sed -i '195s/^\([^\/]\)/\/\/\1/' /etc/s-box/sb.json
-sed -i '196s/^\([^\/]\)/\/\/\1/' /etc/s-box/sb.json
-sed -i '197s/^\([^\/]\)/\/\/\1/' /etc/s-box/sb.json
-sed -i '204s/^\([^\/]\)/\/\/\1/' /etc/s-box/sb.json
-sed -i '205s/^\([^\/]\)/\/\/\1/' /etc/s-box/sb.json
-sed -i '206s/^\([^\/]\)/\/\/\1/' /etc/s-box/sb.json
-sed -i '213s/^\([^\/]\)/\/\/\1/' /etc/s-box/sb.json
-sed -i '214s/^\([^\/]\)/\/\/\1/' /etc/s-box/sb.json
-sed -i '215s/^\([^\/]\)/\/\/\1/' /etc/s-box/sb.json
-sed -i '222s/^\([^\/]\)/\/\/\1/' /etc/s-box/sb.json
-sed -i '223s/^\([^\/]\)/\/\/\1/' /etc/s-box/sb.json
-sed -i '224s/^\([^\/]\)/\/\/\1/' /etc/s-box/sb.json
-sed -i '231s/^\([^\/]\)/\/\/\1/' /etc/s-box/sb.json
-sed -i '232s/^\([^\/]\)/\/\/\1/' /etc/s-box/sb.json
-sed -i '233s/^\([^\/]\)/\/\/\1/' /etc/s-box/sb.json
-red "currentSing-boxThe kernel does not supportgeositeDiversion mode，If you want to usegeositeDiversion mode，Please switch1.10Kernel version"
+red "Version number detection error，Please try again" && upsbcroe
 fi
 }
 
@@ -4450,15 +4664,15 @@ uncronsb
 iptables -t nat -F PREROUTING >/dev/null 2>&1
 netfilter-persistent save >/dev/null 2>&1
 service iptables save >/dev/null 2>&1
-green "Sing-boxUninstall！"
-blue "Welcome to continue to useSing-box-ygscript：bash <(curl -Ls https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/sb.sh)"
+green "Sing-boxUninstall complete！"
+blue "Welcome to continue usingSing-box-ygscript：bash <(curl -Ls https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/sb.sh)"
 echo
 }
 
 sblog(){
 red "Exit log Ctrl+c"
 if [[ x"${release}" == x"alpine" ]]; then
-yellow "No support for the time beingalpineView log"
+yellow "Not supported yetalpineView log"
 else
 #systemctl status sing-box
 journalctl -u sing-box.service -o cat -f
@@ -4467,7 +4681,7 @@ fi
 
 sbactive(){
 if [[ ! -f /etc/s-box/sb.json ]]; then
-red "Normally startSing-box，Please uninstall and choose or choose10View running log feedback" && exit
+red "Not started normallySing-box，Please uninstall or reinstall or select10View run log feedback" && exit
 fi
 }
 
@@ -4481,14 +4695,14 @@ cat /etc/s-box/vm_ws.txt 2>/dev/null >> /etc/s-box/jhdy.txt
 cat /etc/s-box/vm_ws_tls.txt 2>/dev/null >> /etc/s-box/jhdy.txt
 cat /etc/s-box/hy2.txt 2>/dev/null >> /etc/s-box/jhdy.txt
 cat /etc/s-box/tuic5.txt 2>/dev/null >> /etc/s-box/jhdy.txt
-url=$(cat /etc/s-box/jhdy.txt 2>/dev/null)
-baseurl=$(echo -e "$url" | base64 -w 0)
-echo "$baseurl" > /etc/s-box/jh_sub.txt
+baseurl=$(base64 -w 0 < /etc/s-box/jhdy.txt 2>/dev/null)
+v2sub=$(cat /etc/s-box/jhdy.txt 2>/dev/null)
+echo "$v2sub" > /etc/s-box/jh_sub.txt
 echo
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-red "🚀【 Supreme Subscription Subscribe 】Node information is as follows：" && sleep 2
+red "🚀 Four-in-one aggregation subscription 】The node information is as follows：" && sleep 2
 echo
-echo "Share link【v2rayn、v2rayng、nekobox、Karing】"
+echo "Share link【v2rayn,v2rayng,nekobox,Karing"
 echo -e "${yellow}$baseurl${plain}"
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo
@@ -4498,32 +4712,32 @@ sb_client
 clash_sb_share(){
 sbactive
 echo
-yellow "1：Refresh and view each agreement sharing link、QR code、Supreme Subscription Subscribe"
-yellow "2：Refresh and viewClash-Meta、Sing-boxClientSFA/SFI/SFWThree -in -one configuration、GitlabPrivate subscription link"
-yellow "3：Refresh and viewHysteria2、Tuic5ofV2rayNClient custom configuration"
-yellow "4：Push the latest node configuration information(Option1+Option2)arriveTelegramnotify"
-yellow "0：Back to the upper level"
-readp "Choose【0-4】：" menu
+yellow "1：Refresh and view the sharing links of each protocol, QR code, and four-in-one aggregation subscription"
+yellow "2：Refresh and viewClash-Meta,Sing-boxClientSFA/SFI/SFWThree-in-one configuration,GitlabPrivate subscription link"
+yellow "3：Refresh and viewHysteria2,Tuic5ofV2rayNClient custom configuration"
+yellow "4：Push the latest node configuration information(Options1+Options2)arriveTelegramnotify"
+yellow "0：Return to the upper layer"
+readp "Please select [0-4：" menu
 if [ "$menu" = "1" ]; then
 sbshare
 elif  [ "$menu" = "2" ]; then
 green "Please wait……"
 sbshare > /dev/null 2>&1
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-red "GitlabSubscribe to the link as follows："
+red "GitlabSubscription link is as follows："
 gitlabsubgo
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-red "🚀【 vless-reality、vmess-ws、Hysteria2、Tuic5 】Clash-MetaThe configuration file is displayed as follows："
-red "File directory /etc/s-box/clash_meta_client.yaml ，Copy the self -buildingyamlFile format is prevailing" && sleep 2
+red "🚀 vless-reality,vmess-ws,Hysteria2,Tuic5 Clash-MetaThe configuration file is displayed as follows："
+red "File Directory /etc/s-box/clash_meta_client.yaml ，Copy and build it withyamlThe file format shall prevail" && sleep 2
 echo
 cat /etc/s-box/clash_meta_client.yaml
 echo
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-red "🚀【 vless-reality、vmess-ws、Hysteria2、Tuic5 】SFA/SFI/SFWThe configuration file is displayed as follows："
-red "AndroidSFA、appleSFI，winComputer official file packageSFWPlease come to GeyaGithubProject download，"
-red "File directory /etc/s-box/sing_box_client.json ，Copy the self -buildingjsonFile format is prevailing" && sleep 2
+red "🚀 vless-reality,vmess-ws,Hysteria2,Tuic5 SFA/SFI/SFWThe configuration file is displayed as follows："
+red "AndroidSFA,appleSFI，winComputer official file packageSFWPlease come to Brother YongGithubDownload the project by yourself，"
+red "File Directory /etc/s-box/sing_box_client.json ，Copy and build it withjsonThe file format shall prevail" && sleep 2
 echo
 cat /etc/s-box/sing_box_client.json
 echo
@@ -4533,8 +4747,8 @@ elif  [ "$menu" = "3" ]; then
 green "Please wait……"
 sbshare > /dev/null 2>&1
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-red "🚀【 Hysteria-2 】CustomV2rayNThe configuration file is displayed as follows："
-red "File directory /etc/s-box/v2rayn_hy2.yaml ，Copy the self -buildingyamlFile format is prevailing" && sleep 2
+red "🚀 Hysteria-2 】CustomizeV2rayNThe configuration file is displayed as follows："
+red "File Directory /etc/s-box/v2rayn_hy2.yaml ，Copy and build it withyamlThe file format shall prevail" && sleep 2
 echo
 cat /etc/s-box/v2rayn_hy2.yaml
 echo
@@ -4544,13 +4758,13 @@ tu5_sniname=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[3].tls.key_p
 if [[ "$tu5_sniname" = '/etc/s-box/private.key' ]]; then
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo
-red "Notice：V2rayNClient uses customTuic5At the core of the official client，Not supportTuic5Self -signed certificate，Only support the domain name certificate" && sleep 2
+red "Notice：V2rayNClient-side customizationTuic5Official client core time，Not supportedTuic5Self-visa certificate，Only domain name certificates are supported" && sleep 2
 echo
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 else
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-red "🚀【 Tuic-v5 】CustomV2rayNThe configuration file is displayed as follows："
-red "File directory /etc/s-box/v2rayn_tu5.json ，Copy the self -buildingjsonFile format is prevailing" && sleep 2
+red "🚀 Tuic-v5 】CustomizeV2rayNThe configuration file is displayed as follows："
+red "File Directory /etc/s-box/v2rayn_tu5.json ，Copy and build it withjsonThe file format shall prevail" && sleep 2
 echo
 cat /etc/s-box/v2rayn_tu5.json
 echo
@@ -4572,9 +4786,9 @@ bash <(curl -Ls https://gitlab.com/rwkgyg/CFwarp/raw/main/CFwarp.sh)
 }
 bbr(){
 if [[ $vi =~ lxc|openvz ]]; then
-yellow "currentVPSThe architecture is $vi，Do not support the original versionBBRaccelerate" && sleep 2 && exit 
+yellow "currentVPSThe architecture of $vi，It does not support opening the original versionBBRaccelerate" && sleep 2 && exit 
 else
-green "Click any key，You can openBBRaccelerate，ctrl+cquit"
+green "Click any key，It can be openedBBRaccelerate，ctrl+cquit"
 bash <(curl -Ls https://raw.githubusercontent.com/teddysun/across/master/bbr.sh)
 fi
 }
@@ -4587,29 +4801,29 @@ if [[ "$tls" = "false" ]]; then
 argopid
 if [[ -n $(ps -e | grep -w $ym 2>/dev/null) || -n $(ps -e | grep -w $ls 2>/dev/null) ]]; then
 vm_zs="TLSclosure"
-argoym="Open"
+argoym="Opened"
 else
 vm_zs="TLSclosure"
-argoym="Not open"
+argoym="Not enabled"
 fi
 else
 vm_zs="TLSOpen"
-argoym="Do not support the opening"
+argoym="Not supported to enable"
 fi
 hy2_sniname=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[2].tls.key_path')
-[[ "$hy2_sniname" = '/etc/s-box/private.key' ]] && hy2_zs="Self -signed certificate" || hy2_zs="Domain name certificate"
+[[ "$hy2_sniname" = '/etc/s-box/private.key' ]] && hy2_zs="Self-visa certificate" || hy2_zs="Domain name certificate"
 tu5_sniname=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[3].tls.key_path')
-[[ "$tu5_sniname" = '/etc/s-box/private.key' ]] && tu5_zs="Self -signed certificate" || tu5_zs="Domain name certificate"
-echo -e "Sing-boxKey information of node、The situation of the watershed in the basin is as follows："
-echo -e "🚀【 Vless-reality 】${yellow}port:$vl_port  RealityDomain certificate camouflage address：$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[0].tls.server_name')${plain}"
+[[ "$tu5_sniname" = '/etc/s-box/private.key' ]] && tu5_zs="Self-visa certificate" || tu5_zs="Domain name certificate"
+echo -e "Sing-boxThe key information of nodes and the divided basin names are as follows："
+echo -e "🚀 Vless-reality ${yellow}port:$vl_port  RealityDomain name certificate disguised address：$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[0].tls.server_name')${plain}"
 if [[ "$tls" = "false" ]]; then
-echo -e "🚀【   Vmess-ws    】${yellow}port:$vm_port   Formal:$vm_zs   Argostate:$argoym${plain}"
+echo -e "🚀   Vmess-ws    ${yellow}port:$vm_port   Certificate Form:$vm_zs   Argostate:$argoym${plain}"
 else
-echo -e "🚀【 Vmess-ws-tls  】${yellow}port:$vm_port   Formal:$vm_zs   Argostate:$argoym${plain}"
+echo -e "🚀 Vmess-ws-tls  ${yellow}port:$vm_port   Certificate Form:$vm_zs   Argostate:$argoym${plain}"
 fi
-echo -e "🚀【  Hysteria-2   】${yellow}port:$hy2_port  Formal:$hy2_zs  转发多port: $hy2zfport${plain}"
-echo -e "🚀【    Tuic-v5    】${yellow}port:$tu5_port  Formal:$tu5_zs  转发多port: $tu5zfport${plain}"
-if [ "$argoym" = "Open" ]; then
+echo -e "🚀  Hysteria-2   ${yellow}port:$hy2_port  Certificate Form:$hy2_zs  Forwarding multi-port: $hy2zfport${plain}"
+echo -e "🚀    Tuic-v5    ${yellow}port:$tu5_port  Certificate Form:$tu5_zs  Forwarding multi-port: $tu5zfport${plain}"
+if [ "$argoym" = "Opened" ]; then
 echo -e "Vmess-UUID：${yellow}$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[0].users[0].uuid')${plain}"
 echo -e "Vmess-Path：${yellow}$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.inbounds[1].transport.path')${plain}"
 if [[ -n $(ps -e | grep -w $ls 2>/dev/null) ]]; then
@@ -4650,33 +4864,33 @@ NL) showgj="Netherlands" ;;
 NO) showgj="Norway" ;;
 PL) showgj="Poland" ;;
 PT) showgj="Portugal" ;;
-RO) showgj="Romanian" ;;
+RO) showgj="Romania" ;;
 RS) showgj="Serbia" ;;
 SE) showgj="Sweden" ;;
 SG) showgj="Singapore" ;;
 SK) showgj="Slovakia" ;;
 US) showgj="USA" ;;
 esac
-grep -q "country" /etc/s-box/sbwpph.log 2>/dev/null && s5ms="Multi -regionPsiphonProxy mode (port:$s5port  nation:$showgj)" || s5ms="localWarpProxy mode (port:$s5port)"
-echo -e "WARP-plus-Socks5state：$yellowHave started $s5ms$plain"
+grep -q "country" /etc/s-box/sbwpph.log 2>/dev/null && s5ms="Many regionsPsiphonAgent Mode (port:$s5port  nation:$showgj)" || s5ms="localWarpAgent Mode (port:$s5port)"
+echo -e "WARP-plus-Socks5state：$yellowStarted $s5ms$plain"
 else
-echo -e "WARP-plus-Socks5state：$yellowNot start$plain"
+echo -e "WARP-plus-Socks5state：$yellowNot started$plain"
 fi
 echo "------------------------------------------------------------------------------------"
-ww4="warp-wireguard-ipv4Watershed：$wfl4"
-ww6="warp-wireguard-ipv6Watershed：$wfl6"
-ws4="warp-socks5-ipv4Watershed：$sfl4"
-ws6="warp-socks5-ipv6Watershed：$sfl6"
-l4="VPSlocalipv4Watershed：$adfl4"
-l6="VPSlocalipv6Watershed：$adfl6"
-ymflzu=("ww4" "ww6" "ws4" "ws6" "l4" "l6")
+ww4="warp-wireguard-ipv4Priority dividing of basin names：$wfl4"
+ww6="warp-wireguard-ipv6Priority dividing of basin names：$wfl6"
+ws4="warp-socks5-ipv4Priority dividing of basin names：$sfl4"
+ws6="warp-socks5-ipv6Priority dividing of basin names：$sfl6"
+l4="VPSlocalipv4Priority dividing of basin names：$adfl4"
+l6="VPSlocalipv6Priority dividing of basin names：$adfl6"
+[[ "$sbnh" == "1.10" ]] && ymflzu=("ww4" "ww6" "ws4" "ws6" "l4" "l6") || ymflzu=("ww6" "ws4" "l4" "l6")
 for ymfl in "${ymflzu[@]}"; do
 if [[ ${!ymfl} != *"not yet"* ]]; then
 echo -e "${!ymfl}"
 fi
 done
 if [[ $ww4 = *"not yet"* && $ww6 = *"not yet"* && $ws4 = *"not yet"* && $ws6 = *"not yet"* && $l4 = *"not yet"* && $l6 = *"not yet"* ]] ; then
-echo -e "No domain name diversion"
+echo -e "Domain name diversion has not been set"
 fi
 }
 
@@ -4695,26 +4909,32 @@ if [[ -n $(ps -e | grep sbwpph) ]]; then
 kill -15 $(cat /etc/s-box/sbwpphid.log 2>/dev/null) >/dev/null 2>&1
 fi
 v4v6
-if [[ -z $v4 ]]; then
-red "IPV4No existence，Make sure to install itWARP-IPV4model"
-fi 
-[[ -n $v6 ]] && sw46=6 || sw46=4
+if [[ -n $v4 ]]; then
+sw46=4
+else
+red "IPV4Does not exist，Make sure to have been installedWARP-IPV4model"
+sw46=6
+fi
 echo
-readp "set upWARP-plus-Socks5port（回车跳过port默认40000）：" port
+readp "set upWARP-plus-Socks5port（Enter to skip port default40000）：" port
 if [[ -z $port ]]; then
 port=40000
 until [[ -z $(ss -tunlp | grep -w udp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") && -z $(ss -tunlp | grep -w tcp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") ]] 
 do
-[[ -n $(ss -tunlp | grep -w udp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") || -n $(ss -tunlp | grep -w tcp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") ]] && yellow "\nPort is occupied，Please re -enter the port" && readp "Custom port:" port
+[[ -n $(ss -tunlp | grep -w udp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") || -n $(ss -tunlp | grep -w tcp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") ]] && yellow "\nPort occupied，Please re-enter the port" && readp "Custom port:" port
 done
 else
 until [[ -z $(ss -tunlp | grep -w udp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") && -z $(ss -tunlp | grep -w tcp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") ]]
 do
-[[ -n $(ss -tunlp | grep -w udp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") || -n $(ss -tunlp | grep -w tcp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") ]] && yellow "\nPort is occupied，Please re -enter the port" && readp "Custom port:" port
+[[ -n $(ss -tunlp | grep -w udp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") || -n $(ss -tunlp | grep -w tcp | awk '{print $5}' | sed 's/.*://g' | grep -w "$port") ]] && yellow "\nPort occupied，Please re-enter the port" && readp "Custom port:" port
 done
 fi
-s5port=$(cat /etc/s-box/sb.json | jq '.outbounds[] | select(.type == "socks") | .server_port' | tr -d '"')
-sed -i "127s/$s5port/$port/g" /etc/s-box/sb.json
+s5port=$(sed 's://.*::g' /etc/s-box/sb.json | jq -r '.outbounds[] | select(.type == "socks") | .server_port')
+[[ "$sbnh" == "1.10" ]] && num=10 || num=11
+sed -i "127s/$s5port/$port/g" /etc/s-box/sb10.json
+sed -i "150s/$s5port/$port/g" /etc/s-box/sb11.json
+rm -rf /etc/s-box/sb.json
+cp /etc/s-box/sb${num}.json /etc/s-box/sb.json
 restartsb
 }
 unins(){
@@ -4726,11 +4946,11 @@ crontab /tmp/crontab.tmp
 rm /tmp/crontab.tmp
 }
 echo
-yellow "1：ResetWARP-plus-Socks5localWarpProxy mode"
-yellow "2：ResetWARP-plus-Socks5Multi -regionPsiphonProxy mode"
-yellow "3：stopWARP-plus-Socks5Proxy mode"
-yellow "0：Back to the upper level"
-readp "Choose【0-3】：" menu
+yellow "1：Reset EnableWARP-plus-Socks5localWarpAgent Mode"
+yellow "2：Reset EnableWARP-plus-Socks5Many regionsPsiphonAgent Mode"
+yellow "3：stopWARP-plus-Socks5Agent Mode"
+yellow "0：Return to the upper layer"
+readp "Please select [0-3：" menu
 if [ "$menu" = "1" ]; then
 ins
 nohup setsid /etc/s-box/sbwpph -b 127.0.0.1:$port --gool -$sw46 >/dev/null 2>&1 & echo "$!" > /etc/s-box/sbwpphid.log
@@ -4738,7 +4958,7 @@ green "ApplyIPmiddle……Please wait……" && sleep 20
 resv1=$(curl -s --socks5 localhost:$port icanhazip.com)
 resv2=$(curl -sx socks5h://localhost:$port icanhazip.com)
 if [[ -z $resv1 && -z $resv2 ]]; then
-red "WARP-plus-Socks5ofIPFail" && unins && exit
+red "WARP-plus-Socks5ofIPFailed to obtain" && unins && exit
 else
 echo "/etc/s-box/sbwpph -b 127.0.0.1:$port --gool -$sw46 >/dev/null 2>&1" > /etc/s-box/sbwpph.log
 crontab -l > /tmp/crontab.tmp
@@ -4746,7 +4966,7 @@ sed -i '/sbwpphid.log/d' /tmp/crontab.tmp
 echo '@reboot /bin/bash -c "nohup setsid $(cat /etc/s-box/sbwpph.log 2>/dev/null) & pid=\$! && echo \$pid > /etc/s-box/sbwpphid.log"' >> /tmp/crontab.tmp
 crontab /tmp/crontab.tmp
 rm /tmp/crontab.tmp
-green "WARP-plus-Socks5ofIPSucceed，Be able toSocks5Proxy diversion"
+green "WARP-plus-Socks5ofIPGet successful，Can be doneSocks5Agent diversion"
 fi
 elif [ "$menu" = "2" ]; then
 ins
@@ -4777,20 +4997,20 @@ Netherlands（NL）
 Norway (NO)
 Poland（PL）
 Portugal（PT）
-Romanian (RO)
+Romania (RO)
 Serbia（RS）
 Sweden（SE）
 Singapore (SG)
 Slovakia（SK）
 USA（US）
 '
-readp "Can choose national and regions（Enter the last two capital letters，As the United States，InputUS）：" guojia
+readp "Countries and regions available（Enter the last two capital letters，Like the United States，Then enterUS）：" guojia
 nohup setsid /etc/s-box/sbwpph -b 127.0.0.1:$port --cfon --country $guojia -$sw46 >/dev/null 2>&1 & echo "$!" > /etc/s-box/sbwpphid.log
 green "ApplyIPmiddle……Please wait……" && sleep 20
 resv1=$(curl -s --socks5 localhost:$port icanhazip.com)
 resv2=$(curl -sx socks5h://localhost:$port icanhazip.com)
 if [[ -z $resv1 && -z $resv2 ]]; then
-red "WARP-plus-Socks5ofIPFail，Try to change a country" && unins && exit
+red "WARP-plus-Socks5ofIPFailed to obtain，Try changing the country" && unins && exit
 else
 echo "/etc/s-box/sbwpph -b 127.0.0.1:$port --cfon --country $guojia -$sw46 >/dev/null 2>&1" > /etc/s-box/sbwpph.log
 crontab -l > /tmp/crontab.tmp
@@ -4798,10 +5018,10 @@ sed -i '/sbwpphid.log/d' /tmp/crontab.tmp
 echo '@reboot /bin/bash -c "nohup setsid $(cat /etc/s-box/sbwpph.log 2>/dev/null) & pid=\$! && echo \$pid > /etc/s-box/sbwpphid.log"' >> /tmp/crontab.tmp
 crontab /tmp/crontab.tmp
 rm /tmp/crontab.tmp
-green "WARP-plus-Socks5ofIPSucceed，Be able toSocks5Proxy diversion"
+green "WARP-plus-Socks5ofIPGet successful，Can be doneSocks5Agent diversion"
 fi
 elif [ "$menu" = "3" ]; then
-unins && green "StopWARP-plus-Socks5Proxy function"
+unins && green "StoppedWARP-plus-Socks5Agent Function"
 else
 sb
 fi
@@ -4816,33 +5036,29 @@ echo -e "${bblue}     ░██        ░${plain}██    ░██ ██    
 echo -e "${bblue}     ░██ ${plain}        ░██    ░░██        ░██ ░██       ░${red}██ ░██       ░██ ░██ ${plain}  "
 echo -e "${bblue}     ░█${plain}█          ░██ ██ ██         ░██  ░░${red}██     ░██  ░░██     ░██  ░░██ ${plain}  "
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" 
-white "Cricket brotherGithubproject  ：github.com/yonggekkk"
-white "Cricket brotherBloggerblog ：ygkkk.blogspot.com"
-white "Cricket brotherYouTubeChannel ：www.youtube.com/@ygkkk"
+white "Brother YongGithubproject  ：github.com/yonggekkk"
+white "Brother YongBloggerblog ：ygkkk.blogspot.com"
+white "Brother YongYouTubeChannel ：www.youtube.com/@ygkkk"
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" 
-white "Vless-reality-vision、Vmess-ws(tls)+Argo、Hysteria-2、Tuic-v5 Four protocol coexistence script"
-white "Script shortcut：sb"
+white "Vless-reality-vision,Vmess-ws(tls)+Argo,Hysteria-2,Tuic-v5 Four protocol coexistence script"
+white "Script shortcuts：sb"
 red "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-echo "becausesing-boxof1.10and1.11The kernel changes greatly on the configuration file"
-echo "when1.11After the official version of the kernel release，Do not update the kernel version，Keep1.10The series kernel is not moving"
-echo "Waiting for follow -up update！"
-red "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-green " 1. One -click installation Sing-box" 
-green " 2. Delete Sing-box"
+green " 1. One-click installation Sing-box" 
+green " 2. Delete uninstall Sing-box"
 white "----------------------------------------------------------------------------------"
-green " 3. Change configuration 【Dual certificateTLS/UUIDpath/Argo/IPpriority/TGnotify/Warp/subscription/CDNPreferred】" 
-green " 4. Change the main port/Add multi -port jump and reuse" 
-green " 5. Sanzhong domain name diversion"
+green " 3. Change configuration 【Dual CertificateTLS/UUIDpath/Argo/IPpriority/TGnotify/Warp/subscription/CDNPreferred】" 
+green " 4. Change the main port/Add multi-port jump reuse" 
+green " 5. Three-channel domain name diversion"
 green " 6. closure/Restart Sing-box"   
 green " 7. renew Sing-box-yg script"
 green " 8. renew/Switch/Specify Sing-box Kernel version"
 white "----------------------------------------------------------------------------------"
-green " 9. Refresh and view the node 【Clash-Meta/SFA+SFI+SFWThree -in -one configuration/Subscription link/PushTGnotify】"
-green "10. Check Sing-box Runtime log"
-green "11. One -click original versionBBR+FQaccelerate"
-green "12. manage Acme Application domain name certificate"
-green "13. manage Warp CheckNetflix/ChatGPTUnlocking"
-green "14. Add to WARP-plus-Socks5 Proxy mode 【localWarp/Multi -regionPsiphon-VPN】"
+green " 9. Refresh and view nodes Clash-Meta/SFA+SFI+SFWThree-in-one configuration/Subscription link/PushTGnotify】"
+green "10. Check Sing-box Run log"
+green "11. One-click original versionBBR+FQaccelerate"
+green "12. manage Acme Apply for a domain name certificate"
+green "13. manage Warp CheckNetflix/ChatGPTUnlocking situation"
+green "14. Add to WARP-plus-Socks5 Agent Mode 【localWarp/Many regionsPsiphon-VPN"
 green " 0. Exit script"
 red "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 insV=$(cat /etc/s-box/v 2>/dev/null)
@@ -4852,12 +5068,12 @@ if [ "$insV" = "$latestV" ]; then
 echo -e "current Sing-box-yg The latest version of the script：${bblue}${insV}${plain} (Installed)"
 else
 echo -e "current Sing-box-yg Script version number：${bblue}${insV}${plain}"
-echo -e "Test the latest Sing-box-yg Script version number：${yellow}${latestV}${plain} (Optional7Update)"
+echo -e "Latest detected Sing-box-yg Script version number：${yellow}${latestV}${plain} (Available7Make updates)"
 echo -e "${yellow}$(curl -sL https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/version)${plain}"
 fi
 else
 echo -e "current Sing-box-yg Script version number：${bblue}${latestV}${plain}"
-echo -e "Please choose first 1 ，Install Sing-box-yg script"
+yellow "Not installed Sing-box-yg script！Please select first 1 Install"
 fi
 
 lapre
@@ -4865,56 +5081,56 @@ if [ -f '/etc/s-box/sb.json' ]; then
 if [[ $inscore =~ ^[0-9.]+$ ]]; then
 if [ "${inscore}" = "${latcore}" ]; then
 echo
-echo -e "current Sing-box The latest official version of the core：${bblue}${inscore}${plain} (Installed)"
+echo -e "current Sing-box Latest official version of kernel：${bblue}${inscore}${plain} (Installed)"
 echo
-echo -e "current Sing-box The latest test version of the kernel：${bblue}${precore}${plain} (Replaceable)"
+echo -e "current Sing-box Latest beta kernel：${bblue}${precore}${plain} (Switchable)"
 else
 echo
-echo -e "current Sing-box The official version of the kernel has been installed：${bblue}${inscore}${plain}"
-echo -e "Test the latest Sing-box Formal version of the kernel：${yellow}${latcore}${plain} (Optional8Update)"
+echo -e "current Sing-box The official kernel has been installed：${bblue}${inscore}${plain}"
+echo -e "Latest detected Sing-box Official kernel：${yellow}${latcore}${plain} (Available8Make updates)"
 echo
-echo -e "current Sing-box The latest test version of the kernel：${bblue}${precore}${plain} (Replaceable)"
+echo -e "current Sing-box Latest beta kernel：${bblue}${precore}${plain} (Switchable)"
 fi
 else
 if [ "${inscore}" = "${precore}" ]; then
 echo
-echo -e "current Sing-box The latest test version of the kernel：${bblue}${inscore}${plain} (Installed)"
+echo -e "current Sing-box Latest beta kernel：${bblue}${inscore}${plain} (Installed)"
 echo
-echo -e "current Sing-box The latest official version of the core：${bblue}${latcore}${plain} (Replaceable)"
+echo -e "current Sing-box Latest official version of kernel：${bblue}${latcore}${plain} (Switchable)"
 else
 echo
-echo -e "current Sing-box Established test version of the kernel：${bblue}${inscore}${plain}"
-echo -e "Test the latest Sing-box Test kernel：${yellow}${precore}${plain} (Optional8Update)"
+echo -e "current Sing-box Installed beta kernel：${bblue}${inscore}${plain}"
+echo -e "Latest detected Sing-box Beta kernel：${yellow}${precore}${plain} (Available8Make updates)"
 echo
-echo -e "current Sing-box The latest official version of the core：${bblue}${latcore}${plain} (Replaceable)"
+echo -e "current Sing-box Latest official version of kernel：${bblue}${latcore}${plain} (Switchable)"
 fi
 fi
 else
 echo
-echo -e "current Sing-box The latest official version of the core：${bblue}${latcore}${plain}"
-echo -e "current Sing-box The latest test version of the kernel：${bblue}${precore}${plain}"
+echo -e "current Sing-box Latest official version of kernel：${bblue}${latcore}${plain}"
+echo -e "current Sing-box Latest beta kernel：${bblue}${precore}${plain}"
 fi
 red "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-echo -e "VPSThe state is as follows："
-echo -e "system:$blue$op$plain  \c";echo -e "Core:$blue$version$plain  \c";echo -e "processor:$blue$cpu$plain  \c";echo -e "Virtualization:$blue$vi$plain  \c";echo -e "BBRalgorithm:$blue$bbr$plain"
+echo -e "VPSThe status is as follows："
+echo -e "system:$blue$op$plain  \c";echo -e "Kernel:$blue$version$plain  \c";echo -e "processor:$blue$cpu$plain  \c";echo -e "Virtualization:$blue$vi$plain  \c";echo -e "BBRalgorithm:$blue$bbr$plain"
 v4v6
 if [[ "$v6" == "2a09"* ]]; then
-w6="【WARP】"
+w6="WARP"
 fi
 if [[ "$v4" == "104.28"* ]]; then
-w4="【WARP】"
+w4="WARP"
 fi
 rpip=$(sed 's://.*::g' /etc/s-box/sb.json 2>/dev/null | jq -r '.outbounds[0].domain_strategy')
-[[ -z $v4 ]] && showv4='IPV4Lost address，Please switch toIPV6OrdestionSing-box' || showv4=$v4$w4
-[[ -z $v6 ]] && showv6='IPV6Lost address，Please switch toIPV4OrdestionSing-box' || showv6=$v6$w6
+[[ -z $v4 ]] && showv4='IPV4Lost address，Please switch toIPV6Or reinstallSing-box' || showv4=$v4$w4
+[[ -z $v6 ]] && showv6='IPV6Lost address，Please switch toIPV4Or reinstallSing-box' || showv6=$v6$w6
 if [[ $rpip = 'prefer_ipv6' ]]; then
-v4_6="IPV6Priority out of the station($showv6)"
+v4_6="IPV6Priority exit($showv6)"
 elif [[ $rpip = 'prefer_ipv4' ]]; then
-v4_6="IPV4Priority out of the station($showv4)"
+v4_6="IPV4Priority exit($showv4)"
 elif [[ $rpip = 'ipv4_only' ]]; then
-v4_6="onlyIPV4Leave the station($showv4)"
+v4_6="onlyIPV4Exit($showv4)"
 elif [[ $rpip = 'ipv6_only' ]]; then
-v4_6="onlyIPV6Leave the station($showv6)"
+v4_6="onlyIPV6Exit($showv6)"
 fi
 if [[ -z $v4 ]]; then
 vps_ipv4='noneIPV4'      
@@ -4938,9 +5154,9 @@ status_cmd="systemctl status sing-box"
 status_pattern="active"
 fi
 if [[ -n $($status_cmd 2>/dev/null | grep -w "$status_pattern") && -f '/etc/s-box/sb.json' ]]; then
-echo -e "Sing-boxstate：$blueIn operation$plain"
+echo -e "Sing-boxstate：$blueRunning$plain"
 elif [[ -z $($status_cmd 2>/dev/null | grep -w "$status_pattern") && -f '/etc/s-box/sb.json' ]]; then
-echo -e "Sing-boxstate：$yellowNot start，choose10View logs and feedback，It is recommended to uninstall and reinstallSing-box-ygscript$plain"
+echo -e "Sing-boxstate：$yellowNot started，choose10View logs and feedback，It is recommended to switch the official kernel or uninstall the reinstall script$plain"
 else
 echo -e "Sing-boxstate：$redNot installed$plain"
 fi
@@ -4950,7 +5166,7 @@ showprotocol
 fi
 red "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo
-readp "Please enter the number【0-14】:" Input
+readp "Please enter the number0-14:" Input
 case "$Input" in  
  1 ) instsllsingbox;;
  2 ) unins;;

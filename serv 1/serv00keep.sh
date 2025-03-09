@@ -1,5 +1,5 @@
 #!/bin/bash
-# Define color
+# Define the color
 re="\033[0m"
 red="\033[1;91m"
 green="\e[1;32m"
@@ -20,54 +20,56 @@ export hy2_port=${hy2_port:-''}
 export IP=${IP:-''}                  
 export reym=${reym:-''}
 export reset=${reset:-''}
+export resport=${resport:-''}
 
+devil binexec on >/dev/null 2>&1
 USERNAME=$(whoami | tr '[:upper:]' '[:lower:]')
 HOSTNAME=$(hostname)
+snb=$(hostname | awk -F '.' '{print $1}')
+nb=$(hostname | cut -d '.' -f 1 | tr -d 's')
 if [[ "$reset" =~ ^[Yy]$ ]]; then
-crontab -l | grep -v "serv00keep" >rmcron
-crontab rmcron >/dev/null 2>&1
-rm rmcron
+#crontab -l | grep -v "serv00keep" >rmcron
+#crontab rmcron >/dev/null 2>&1
+#rm rmcron
 bash -c 'ps aux | grep $(whoami) | grep -v "sshd\|bash\|grep" | awk "{print \$2}" | xargs -r kill -9 >/dev/null 2>&1' >/dev/null 2>&1
+devil www del ${USERNAME}.serv00.net > /dev/null 2>&1
+sed -i '/export PATH="\$HOME\/bin:\$PATH"/d' "${HOME}/.bashrc" >/dev/null 2>&1
+source "${HOME}/.bashrc" >/dev/null 2>&1
 find ~ -type f -exec chmod 644 {} \; 2>/dev/null
 find ~ -type d -exec chmod 755 {} \; 2>/dev/null
 find ~ -type f -exec rm -f {} \; 2>/dev/null
 find ~ -type d -empty -exec rmdir {} \; 2>/dev/null
 find ~ -exec rm -rf {} \; 2>/dev/null
-echo "Resetting system is completed"
+echo "Reset the system complete"
 fi
 sleep 2
 devil www add ${USERNAME}.serv00.net php > /dev/null 2>&1
 FILE_PATH="${HOME}/domains/${USERNAME}.serv00.net/public_html"
 WORKDIR="${HOME}/domains/${USERNAME}.serv00.net/logs"
+[ -d "$FILE_PATH" ] || mkdir -p "$FILE_PATH"
 [ -d "$WORKDIR" ] || (mkdir -p "$WORKDIR" && chmod 777 "$WORKDIR")
 
 read_ip(){
-nb=$(echo "$HOSTNAME" | cut -d '.' -f 1 | tr -d 's')
 ym=("$HOSTNAME" "cache$nb.serv00.com" "web$nb.serv00.com")
-rm -rf ip.txt hy2ip.txt
-for ip in "${ym[@]}"; do
-dig @8.8.8.8 +time=2 +short $ip >> hy2ip.txt
+rm -rf ip.txt
+for host in "${ym[@]}"; do
+response=$(curl -sL --connect-timeout 5 --max-time 7 "https://ss.fkj.pp.ua/api/getip?host=$host")
+if [[ "$response" =~ (unknown|not|error) ]]; then
+dig @8.8.8.8 +time=5 +short $host | sort -u >> ip.txt
 sleep 1  
-done
-for ym in "${ym[@]}"; do
-# Quotefrankiejun API
-response=$(curl -s "https://ss.botai.us.kg/api/getip?host=$ym")
-if [[ -z "$response" ]]; then
-for ip in "${ym[@]}"; do
-dig @8.8.8.8 +time=2 +short $ip >> ip.txt
-sleep 1  
-done
-break
 else
-echo "$response" | while IFS='|' read -r ip status; do
+while IFS='|' read -r ip status; do
 if [[ $status == "Accessible" ]]; then
-echo "$ip: Available"  >> ip.txt
+echo "$ip: Available" >> ip.txt
 else
-echo "$ip: Wall (ArgoandCDNReturn node、proxyipStill effective)"  >> ip.txt
+echo "$ip: Being walled (ArgoandCDNReturn to source node,proxyipStill effective)" >> ip.txt
 fi	
-done
+done <<< "$response"
 fi
 done
+if [[ ! "$response" =~ (unknown|not|error) ]]; then
+grep ':' $WORKDIR/ip.txt | sort -u -o $WORKDIR/ip.txt
+fi
 if [[ -z "$IP" ]]; then
 IP=$(grep -m 1 "Available" ip.txt | awk -F ':' '{print $1}')
 if [ -z "$IP" ]; then
@@ -100,25 +102,6 @@ okip(){
     echo "$IP"
     }
 
-# Generating argo Config
-argo_configure() {
-  if [[ $ARGO_AUTH =~ TunnelSecret ]]; then
-    echo $ARGO_AUTH > tunnel.json
-    cat > tunnel.yml << EOF
-tunnel: $(cut -d\" -f12 <<< "$ARGO_AUTH")
-credentials-file: tunnel.json
-protocol: http2
-
-ingress:
-  - hostname: $ARGO_DOMAIN
-    service: http://localhost:$vmess_port
-    originRequest:
-      noTLSVerify: true
-  - service: http_status:404
-EOF
-  fi
-}
-
 uuidport(){
 if [[ -z "$UUID" ]]; then
 if [ ! -e UUID.txt ]; then
@@ -132,12 +115,17 @@ if [[ -z "$reym" ]]; then
 reym=$USERNAME.serv00.net
 fi
 if [[ -z "$vless_port" ]] || [[ -z "$vmess_port" ]] || [[ -z "$hy2_port" ]]; then
+check_port
+fi
+}
+
+check_port(){
 port_list=$(devil port list)
 tcp_ports=$(echo "$port_list" | grep -c "tcp")
 udp_ports=$(echo "$port_list" | grep -c "udp")
 
 if [[ $tcp_ports -ne 2 || $udp_ports -ne 1 ]]; then
-    echo "The number of ports does not meet the requirements，Adjust..."
+    echo "The number of ports does not meet the requirements，Adjusting..."
 
     if [[ $tcp_ports -gt 2 ]]; then
         tcp_to_delete=$((tcp_ports - 2))
@@ -162,7 +150,7 @@ if [[ $tcp_ports -ne 2 || $udp_ports -ne 1 ]]; then
             tcp_port=$(shuf -i 10000-65535 -n 1) 
             result=$(devil port add tcp $tcp_port 2>&1)
             if [[ $result == *"succesfully"* ]]; then
-                echo "Have been addedTCPport: $tcp_port"
+                echo "AddedTCPport: $tcp_port"
                 if [[ $tcp_ports_added -eq 0 ]]; then
                     tcp_port1=$tcp_port
                 else
@@ -170,7 +158,7 @@ if [[ $tcp_ports -ne 2 || $udp_ports -ne 1 ]]; then
                 fi
                 tcp_ports_added=$((tcp_ports_added + 1))
             else
-                echo "port $tcp_port Unavailable，try another port..."
+                echo "port $tcp_port Not available，Try another port..."
             fi
         done
     fi
@@ -180,17 +168,17 @@ if [[ $tcp_ports -ne 2 || $udp_ports -ne 1 ]]; then
             udp_port=$(shuf -i 10000-65535 -n 1) 
             result=$(devil port add udp $udp_port 2>&1)
             if [[ $result == *"succesfully"* ]]; then
-                echo "Have been addedUDPport: $udp_port"
+                echo "AddedUDPport: $udp_port"
                 break
             else
-                echo "port $udp_port Unavailable，try another port..."
+                echo "port $udp_port Not available，Try another port..."
             fi
         done
     fi
-    echo "The port has been adjusted to complete,Will disconnectsshconnect"
+    #echo "Port adjustment completed,Will be disconnectedsshconnect"
     sleep 3
-    devil binexec on >/dev/null 2>&1
-    kill -9 $(ps -o ppid= -p $$) >/dev/null 2>&1
+    #devil binexec on >/dev/null 2>&1
+    #kill -9 $(ps -o ppid= -p $$) >/dev/null 2>&1
 else
     tcp_ports=$(echo "$port_list" | awk '/tcp/ {print $1}')
     tcp_port1=$(echo "$tcp_ports" | sed -n '1p')
@@ -198,27 +186,18 @@ else
     udp_port=$(echo "$port_list" | awk '/udp/ {print $1}')
 
     echo "yourvless-realityofTCPport: $tcp_port1" 
-    echo "yourvmessofTCPport(Set upArgo fixed domain name port)：$tcp_port2"
+    echo "yourvmessofTCPport(set upArgoFixed domain name port)：$tcp_port2"
     echo "yourhysteria2ofUDPport: $udp_port"
 fi
 export vless_port=$tcp_port1
 export vmess_port=$tcp_port2
 export hy2_port=$udp_port
-fi
 }
 
 download_and_run_singbox() {
 if [ ! -s sb.txt ] && [ ! -s ag.txt ]; then
-  ARCH=$(uname -m) && DOWNLOAD_DIR="." && mkdir -p "$DOWNLOAD_DIR" && FILE_INFO=()
-  if [ "$ARCH" == "arm" ] || [ "$ARCH" == "arm64" ] || [ "$ARCH" == "aarch64" ]; then
-      FILE_INFO=("https://github.com/eooce/test/releases/download/arm64/sb web" "https://github.com/eooce/test/releases/download/arm64/bot13 bot")
-  elif [ "$ARCH" == "amd64" ] || [ "$ARCH" == "x86_64" ] || [ "$ARCH" == "x86" ]; then
-      FILE_INFO=("https://github.com/yonggekkk/Cloudflare_vless_trojan/releases/download/serv00/sb web" "https://github.com/yonggekkk/Cloudflare_vless_trojan/releases/download/serv00/server bot")
-  else
-      echo "Unsupported architecture: $ARCH"
-      exit 1
-  fi
-  
+DOWNLOAD_DIR="." && mkdir -p "$DOWNLOAD_DIR" && FILE_INFO=()
+FILE_INFO=("https://github.com/yonggekkk/Cloudflare_vless_trojan/releases/download/serv00/sb web" "https://github.com/yonggekkk/Cloudflare_vless_trojan/releases/download/serv00/server bot")
 declare -A FILE_MAP
 generate_random_name() {
     local chars=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890
@@ -277,17 +256,8 @@ echo "${public_key}" > public_key.txt
 fi
 private_key=$(<private_key.txt)
 public_key=$(<public_key.txt)
-
 openssl ecparam -genkey -name prime256v1 -out "private.key"
 openssl req -new -x509 -days 3650 -key "private.key" -out "cert.pem" -subj "/CN=$USERNAME.serv00.net"
-
-nb=$(hostname | cut -d '.' -f 1 | tr -d 's')
-if [ "$nb" == "14" ]; then
-ytb='"jnn-pa.googleapis.com",'
-fi
-hy1p=$(sed -n '1p' hy2ip.txt)
-hy2p=$(sed -n '2p' hy2ip.txt)
-hy3p=$(sed -n '3p' hy2ip.txt)
   cat > config.json << EOF
 {
   "log": {
@@ -297,9 +267,9 @@ hy3p=$(sed -n '3p' hy2ip.txt)
   },
     "inbounds": [
     {
-       "tag": "hysteria-in",
+       "tag": "hysteria-in1",
        "type": "hysteria2",
-       "listen": "$hy1p",
+       "listen": "$(dig @8.8.8.8 +time=5 +short "web$nb.serv00.com" | sort -u)",
        "listen_port": $hy2_port,
        "users": [
          {
@@ -318,9 +288,9 @@ hy3p=$(sed -n '3p' hy2ip.txt)
         }
     },
         {
-       "tag": "hysteria-in",
+       "tag": "hysteria-in2",
        "type": "hysteria2",
-       "listen": "$hy2p",
+       "listen": "$(dig @8.8.8.8 +time=5 +short "$HOSTNAME" | sort -u)",
        "listen_port": $hy2_port,
        "users": [
          {
@@ -339,9 +309,9 @@ hy3p=$(sed -n '3p' hy2ip.txt)
         }
     },
         {
-       "tag": "hysteria-in",
+       "tag": "hysteria-in3",
        "type": "hysteria2",
-       "listen": "$hy3p",
+       "listen": "$(dig @8.8.8.8 +time=5 +short "cache$nb.serv00.com" | sort -u)",
        "listen_port": $hy2_port,
        "users": [
          {
@@ -403,7 +373,7 @@ hy3p=$(sed -n '3p' hy2ip.txt)
       }
     }
  ],
-    "outbounds": [
+     "outbounds": [
      {
         "type": "wireguard",
         "tag": "wg",
@@ -424,19 +394,32 @@ hy3p=$(sed -n '3p' hy2ip.txt)
     {
       "type": "direct",
       "tag": "direct"
-    },
-    {
-      "type": "block",
-      "tag": "block"
     }
   ],
    "route": {
+       "rule_set": [
+      {
+        "tag": "google-gemini",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/google-gemini.srs",
+        "download_detour": "direct"
+      }
+    ],
+EOF
+if [[ "$nb" =~ (14|15|16) ]]; then
+cat >> config.json <<EOF 
     "rules": [
     {
      "domain": [
-     $ytb
-     "oh.my.god"
+     "jnn-pa.googleapis.com"
       ],
+     "outbound": "wg"
+     },
+     {
+     "rule_set":[
+     "google-gemini"
+     ],
      "outbound": "wg"
     }
     ],
@@ -444,9 +427,16 @@ hy3p=$(sed -n '3p' hy2ip.txt)
     }  
 }
 EOF
+else
+  cat >> config.json <<EOF
+    "final": "direct"
+    }  
+}
+EOF
+fi
 
-if ! ps aux | grep '[c]onfig' > /dev/null; then
-ps aux | grep '[c]onfig' | awk '{print $2}' | xargs -r kill -9 > /dev/null 2>&1
+if ! ps aux | grep '[r]un -c con' > /dev/null; then
+ps aux | grep '[r]un -c con' | awk '{print $2}' | xargs -r kill -9 > /dev/null 2>&1
 if [ -e "$(basename "${FILE_MAP[web]}")" ]; then
    echo "$(basename "${FILE_MAP[web]}")" > sb.txt
    sbb=$(cat sb.txt)   
@@ -455,11 +445,11 @@ if [ -e "$(basename "${FILE_MAP[web]}")" ]; then
 if pgrep -x "$sbb" > /dev/null; then
     green "$sbb The main process has been started"
 else
-    red "$sbb The main process has not started, Restart..."
+    red "$sbb The main process has not started, Restarting..."
     pkill -x "$sbb"
     nohup ./"$sbb" run -c config.json >/dev/null 2>&1 &
     sleep 2
-    purple "$sbb The main process has restarted"
+    purple "$sbb The main process has been restarted"
 fi
 else
     sbb=$(cat sb.txt)   
@@ -468,11 +458,11 @@ else
 if pgrep -x "$sbb" > /dev/null; then
     green "$sbb The main process has been started"
 else
-    red "$sbb The main process has not started, Restart..."
+    red "$sbb The main process has not started, Restarting..."
     pkill -x "$sbb"
     nohup ./"$sbb" run -c config.json >/dev/null 2>&1 &
     sleep 2
-    purple "$sbb The main process has restarted"
+    purple "$sbb The main process has been restarted"
 fi
 fi
 else
@@ -486,8 +476,6 @@ if [ -e "$(basename "${FILE_MAP[bot]}")" ]; then
     if [[ $ARGO_AUTH =~ ^[A-Z0-9a-z=]{120,250}$ ]]; then
       #args="tunnel --edge-ip-version auto --no-autoupdate --protocol http2 run --token ${ARGO_AUTH}"
       args="tunnel --no-autoupdate run --token ${ARGO_AUTH}"
-    elif [[ $ARGO_AUTH =~ TunnelSecret ]]; then
-      args="tunnel --edge-ip-version auto --config tunnel.yml run"
     else
      #args="tunnel --edge-ip-version auto --no-autoupdate --protocol http2 --logfile boot.log --loglevel info --url http://localhost:$vmess_port"
      args="tunnel --url http://localhost:$vmess_port --no-autoupdate --logfile boot.log --loglevel info"
@@ -495,21 +483,19 @@ if [ -e "$(basename "${FILE_MAP[bot]}")" ]; then
     nohup ./"$agg" $args >/dev/null 2>&1 &
     sleep 10
 if pgrep -x "$agg" > /dev/null; then
-    green "$agg ArogThe process has been started"
+    green "$agg ArogThe process has started"
 else
-    red "$agg ArgoThe process is not started, Restart..."
+    red "$agg ArgoThe process has not started, Restarting..."
     pkill -x "$agg"
     nohup ./"$agg" "${args}" >/dev/null 2>&1 &
     sleep 5
-    purple "$agg ArgoThe process has restarted"
+    purple "$agg ArgoThe process has been restarted"
 fi
 else
    agg=$(cat ag.txt)
     if [[ $ARGO_AUTH =~ ^[A-Z0-9a-z=]{120,250}$ ]]; then
       #args="tunnel --edge-ip-version auto --no-autoupdate --protocol http2 run --token ${ARGO_AUTH}"
       args="tunnel --no-autoupdate run --token ${ARGO_AUTH}"
-    elif [[ $ARGO_AUTH =~ TunnelSecret ]]; then
-      args="tunnel --edge-ip-version auto --config tunnel.yml run"
     else
      #args="tunnel --edge-ip-version auto --no-autoupdate --protocol http2 --logfile boot.log --loglevel info --url http://localhost:$vmess_port"
      args="tunnel --url http://localhost:$vmess_port --no-autoupdate --logfile boot.log --loglevel info"
@@ -517,33 +503,32 @@ else
     nohup ./"$agg" $args >/dev/null 2>&1 &
     sleep 10
 if pgrep -x "$agg" > /dev/null; then
-    green "$agg ArogThe process has been started"
+    green "$agg ArogThe process has started"
 else
-    red "$agg ArgoThe process is not started, Restart..."
+    red "$agg ArgoThe process has not started, Restarting..."
     pkill -x "$agg"
     nohup ./"$agg" "${args}" >/dev/null 2>&1 &
     sleep 5
-    purple "$agg ArgoThe process has restarted"
+    purple "$agg ArgoThe process has been restarted"
 fi
 fi
 }
-if [ -z "$ARGO_DOMAIN" ] && ! ps aux | grep '[t]unnel --url' > /dev/null; then
-ps aux | grep '[t]unnel --url' | awk '{print $2}' | xargs -r kill -9 > /dev/null 2>&1
+if [ -z "$ARGO_DOMAIN" ] && ! ps aux | grep '[t]unnel --u' > /dev/null; then
+ps aux | grep '[t]unnel --u' | awk '{print $2}' | xargs -r kill -9 > /dev/null 2>&1
 cfgo
-elif [ -n "$ARGO_DOMAIN" ] && ! ps aux | grep '[t]unnel --no' > /dev/null; then
-ps aux | grep '[t]unnel --no' | awk '{print $2}' | xargs -r kill -9 > /dev/null 2>&1
+elif [ -n "$ARGO_DOMAIN" ] && ! ps aux | grep '[t]unnel --n' > /dev/null; then
+ps aux | grep '[t]unnel --n' | awk '{print $2}' | xargs -r kill -9 > /dev/null 2>&1
 cfgo
 else
-green "ArogThe process has been started"
+green "ArogThe process has started"
 fi
 sleep 2
 if ! pgrep -x "$(cat sb.txt)" > /dev/null; then
-red "The main process has not started，Check them one by one according to the following conditions"
-yellow "1、Whether the web is open"
-yellow "2、Delete all ports in the web background，Let the script automatically generate random available port"
-yellow "3、chooseyRun once reset"
-yellow "4、currentServ00The server exploded？Try again"
-red "5、Try it all above，Brother lying directly，Give it to the process guarantee，Let's look at it again"
+red "The main process has not started，Check one by one according to the following situations"
+yellow "1,REPchooseyReset a random port once，Leave the three port parameters blank and do not fill in，Change ton（important）"
+yellow "2,RESchooseyRun the reset system once，Change ton（important）"
+yellow "3,currentServ00The server exploded？Try again later"
+red "4, tried all the above，Brother lie down straight，Leave it to the process to keep alive，See you later"
 fi
 }
 
@@ -564,7 +549,7 @@ get_argodomain() {
       sleep 2
     done  
     if [ -z ${argodomain} ]; then
-    argodomain="ArgoTemporary domain names temporarily failed，ArgoNode is not available for the time being"
+    argodomain="ArgoTemporary domain name temporary acquisition failed，ArgoNode is currently unavailable"
     fi
     echo "$argodomain"
   fi
@@ -573,22 +558,17 @@ get_argodomain() {
 get_links(){
 argodomain=$(get_argodomain)
 echo -e "\e[1;32mArgodomain name：\e[1;35m${argodomain}\e[0m\n"
-ISP=$(curl -sL --max-time 5 https://speed.cloudflare.com/meta | awk -F\" '{print $26}' | sed -e 's/ /_/g' || echo "0")
-get_name() { if [ "$HOSTNAME" = "s1.ct8.pl" ]; then SERVER="CT8"; else SERVER=$(echo "$HOSTNAME" | cut -d '.' -f 1); fi; echo "$SERVER"; }
-NAME="$ISP-$(get_name)"
-rm -rf jh.txt
-vl_link="vless://$UUID@$IP:$vless_port?encryption=none&flow=xtls-rprx-vision&security=reality&sni=$reym&fp=chrome&pbk=$public_key&type=tcp&headerType=none#$NAME-reality"
-echo "$vl_link" >> jh.txt
-vmws_link="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"$NAME-vmess-ws\", \"add\": \"$IP\", \"port\": \"$vmess_port\", \"id\": \"$UUID\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"\", \"path\": \"/$UUID-vm?ed=2048\", \"tls\": \"\", \"sni\": \"\", \"alpn\": \"\", \"fp\": \"\"}" | base64 -w0)"
+vl_link="vless://$UUID@$IP:$vless_port?encryption=none&flow=xtls-rprx-vision&security=reality&sni=$reym&fp=chrome&pbk=$public_key&type=tcp&headerType=none#$snb-reality"
+echo "$vl_link" > jh.txt
+vmws_link="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"$snb-vmess-ws\", \"add\": \"$IP\", \"port\": \"$vmess_port\", \"id\": \"$UUID\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"\", \"path\": \"/$UUID-vm?ed=2048\", \"tls\": \"\", \"sni\": \"\", \"alpn\": \"\", \"fp\": \"\"}" | base64 -w0)"
 echo "$vmws_link" >> jh.txt
-vmatls_link="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"$NAME-vmess-ws-tls-argo\", \"add\": \"icook.hk\", \"port\": \"8443\", \"id\": \"$UUID\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$UUID-vm?ed=2048\", \"tls\": \"tls\", \"sni\": \"$argodomain\", \"alpn\": \"\", \"fp\": \"\"}" | base64 -w0)"
+vmatls_link="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"$snb-vmess-ws-tls-argo\", \"add\": \"icook.hk\", \"port\": \"8443\", \"id\": \"$UUID\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$UUID-vm?ed=2048\", \"tls\": \"tls\", \"sni\": \"$argodomain\", \"alpn\": \"\", \"fp\": \"\"}" | base64 -w0)"
 echo "$vmatls_link" >> jh.txt
-vma_link="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"$NAME-vmess-ws-argo\", \"add\": \"icook.hk\", \"port\": \"8880\", \"id\": \"$UUID\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$UUID-vm?ed=2048\", \"tls\": \"\"}" | base64 -w0)"
+vma_link="vmess://$(echo "{ \"v\": \"2\", \"ps\": \"$snb-vmess-ws-argo\", \"add\": \"icook.hk\", \"port\": \"8880\", \"id\": \"$UUID\", \"aid\": \"0\", \"scy\": \"auto\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"$argodomain\", \"path\": \"/$UUID-vm?ed=2048\", \"tls\": \"\"}" | base64 -w0)"
 echo "$vma_link" >> jh.txt
-hy2_link="hysteria2://$UUID@$IP:$hy2_port?sni=www.bing.com&alpn=h3&insecure=1#$NAME-hy2"
+hy2_link="hysteria2://$UUID@$IP:$hy2_port?sni=www.bing.com&alpn=h3&insecure=1#$snb-hy2"
 echo "$hy2_link" >> jh.txt
-url=$(cat jh.txt 2>/dev/null)
-baseurl=$(echo -e "$url" | base64 -w 0)
+baseurl=$(base64 -w 0 < jh.txt)
 
 cat > sing_box.json <<EOF
 {
@@ -690,16 +670,16 @@ cat > sing_box.json <<EOF
       "default": "auto",
       "outbounds": [
         "auto",
-        "vless-$NAME",
-        "vmess-$NAME",
-        "hy2-$NAME",
-"vmess-tls-argo-$NAME",
-"vmess-argo-$NAME"
+        "vless-$snb",
+        "vmess-$snb",
+        "hy2-$snb",
+"vmess-tls-argo-$snb",
+"vmess-argo-$snb"
       ]
     },
     {
       "type": "vless",
-      "tag": "vless-$NAME",
+      "tag": "vless-$snb",
       "server": "$IP",
       "server_port": $vless_port,
       "uuid": "$UUID",
@@ -722,7 +702,7 @@ cat > sing_box.json <<EOF
 {
             "server": "$IP",
             "server_port": $vmess_port,
-            "tag": "vmess-$NAME",
+            "tag": "vmess-$snb",
             "tls": {
                 "enabled": false,
                 "server_name": "www.bing.com",
@@ -749,7 +729,7 @@ cat > sing_box.json <<EOF
 
     {
         "type": "hysteria2",
-        "tag": "hy2-$NAME",
+        "tag": "hy2-$snb",
         "server": "$IP",
         "server_port": $hy2_port,
         "password": "$UUID",
@@ -765,7 +745,7 @@ cat > sing_box.json <<EOF
 {
             "server": "icook.hk",
             "server_port": 8443,
-            "tag": "vmess-tls-argo-$NAME",
+            "tag": "vmess-tls-argo-$snb",
             "tls": {
                 "enabled": true,
                 "server_name": "$argodomain",
@@ -792,7 +772,7 @@ cat > sing_box.json <<EOF
 {
             "server": "icook.hk",
             "server_port": 8880,
-            "tag": "vmess-argo-$NAME",
+            "tag": "vmess-argo-$snb",
             "tls": {
                 "enabled": false,
                 "server_name": "$argodomain",
@@ -824,11 +804,11 @@ cat > sing_box.json <<EOF
       "tag": "auto",
       "type": "urltest",
       "outbounds": [
-        "vless-$NAME",
-        "vmess-$NAME",
-        "hy2-$NAME",
-"vmess-tls-argo-$NAME",
-"vmess-argo-$NAME"
+        "vless-$snb",
+        "vmess-$snb",
+        "hy2-$snb",
+"vmess-tls-argo-$snb",
+"vmess-argo-$snb"
       ],
       "url": "https://www.gstatic.com/generate_204",
       "interval": "1m",
@@ -944,7 +924,7 @@ dns:
       - 240.0.0.0/4
 
 proxies:
-- name: vless-reality-vision-$NAME               
+- name: vless-reality-vision-$snb               
   type: vless
   server: $IP                           
   port: $vless_port                                
@@ -958,7 +938,7 @@ proxies:
     public-key: $public_key                      
   client-fingerprint: chrome                  
 
-- name: vmess-ws-$NAME                         
+- name: vmess-ws-$snb                         
   type: vmess
   server: $IP                       
   port: $vmess_port                                     
@@ -974,7 +954,7 @@ proxies:
     headers:
       Host: www.bing.com                     
 
-- name: hysteria2-$NAME                            
+- name: hysteria2-$snb                            
   type: hysteria2                                      
   server: $IP                               
   port: $hy2_port                                
@@ -985,7 +965,7 @@ proxies:
   skip-cert-verify: true
   fast-open: true
 
-- name: vmess-tls-argo-$NAME                         
+- name: vmess-tls-argo-$snb                         
   type: vmess
   server: icook.hk                        
   port: 8443                                     
@@ -1001,7 +981,7 @@ proxies:
     headers:
       Host: $argodomain
 
-- name: vmess-argo-$NAME                         
+- name: vmess-argo-$snb                         
   type: vmess
   server: icook.hk                        
   port: 8880                                     
@@ -1024,11 +1004,11 @@ proxy-groups:
   interval: 300
   strategy: round-robin
   proxies:
-    - vless-reality-vision-$NAME                              
-    - vmess-ws-$NAME
-    - hysteria2-$NAME
-    - vmess-tls-argo-$NAME
-    - vmess-argo-$NAME
+    - vless-reality-vision-$snb                              
+    - vmess-ws-$snb
+    - hysteria2-$snb
+    - vmess-tls-argo-$snb
+    - vmess-argo-$snb
 
 - name: Auto
   type: url-test
@@ -1036,11 +1016,11 @@ proxy-groups:
   interval: 300
   tolerance: 50
   proxies:
-    - vless-reality-vision-$NAME                              
-    - vmess-ws-$NAME
-    - hysteria2-$NAME
-    - vmess-tls-argo-$NAME
-    - vmess-argo-$NAME
+    - vless-reality-vision-$snb                             
+    - vmess-ws-$snb
+    - hysteria2-$snb
+    - vmess-tls-argo-$snb
+    - vmess-argo-$snb
     
 - name: Select
   type: select
@@ -1048,11 +1028,11 @@ proxy-groups:
     - Balance                                         
     - Auto
     - DIRECT
-    - vless-reality-vision-$NAME                              
-    - vmess-ws-$NAME
-    - hysteria2-$NAME
-    - vmess-tls-argo-$NAME
-    - vmess-argo-$NAME
+    - vless-reality-vision-$snb                              
+    - vmess-ws-$snb
+    - hysteria2-$snb
+    - vmess-tls-argo-$snb
+    - vmess-argo-$snb
 rules:
   - GEOIP,LAN,DIRECT
   - GEOIP,CN,DIRECT
@@ -1060,63 +1040,71 @@ rules:
   
 EOF
 
-sleep 2
-[ -d "$FILE_PATH" ] || mkdir -p "$FILE_PATH"
-echo "$baseurl" > ${FILE_PATH}/${USERNAME}_v2sub.txt
-cat clash_meta.yaml > ${FILE_PATH}/${USERNAME}_clashmeta.txt
-cat sing_box.json > ${FILE_PATH}/${USERNAME}_singbox.txt
-V2rayN_LINK="https://${USERNAME}.serv00.net/${USERNAME}_v2sub.txt"
-Clashmeta_LINK="https://${USERNAME}.serv00.net/${USERNAME}_clashmeta.txt"
-Singbox_LINK="https://${USERNAME}.serv00.net/${USERNAME}_singbox.txt"
+rm -rf ${FILE_PATH}/*.txt
+v2sub=$(cat jh.txt)
+echo "$v2sub" > ${FILE_PATH}/${UUID}_v2sub.txt
+cat clash_meta.yaml > ${FILE_PATH}/${UUID}_clashmeta.txt
+cat sing_box.json > ${FILE_PATH}/${UUID}_singbox.txt
+curl -sL https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/index.html -o "$FILE_PATH"/index.html
+V2rayN_LINK="https://${USERNAME}.serv00.net/${UUID}_v2sub.txt"
+Clashmeta_LINK="https://${USERNAME}.serv00.net/${UUID}_clashmeta.txt"
+Singbox_LINK="https://${USERNAME}.serv00.net/${UUID}_singbox.txt"
 cat > list.txt <<EOF
 =================================================================================================
 
-one、Vless-realityShare the link as follows：
+The current client is usingIP：$IP
+As default nodeIPBeing walled，The following other can be replaced at the client addressIP
+$(dig @8.8.8.8 +time=5 +short "web$nb.serv00.com" | sort -u)
+$(dig @8.8.8.8 +time=5 +short "$HOSTNAME" | sort -u)
+$(dig @8.8.8.8 +time=5 +short "cache$nb.serv00.com" | sort -u)
+-------------------------------------------------------------------------------------------------
+
+one,Vless-realityShare links are as follows：
 $vl_link
 
-Notice：If you entered beforerealityDomain nameCFdomain name，Will activate the following functions：
-Can be applied https://github.com/yonggekkk/Cloudflare_vless_trojan Created in the projectCF vless/trojan node
-1、Proxyip(Band)The information is as follows：
-Method for a whole situation：Set variable name：proxyip    Set variable value：$IP:$vless_port  
-Method 2 single node application：pathChange to：/pyip=$IP:$vless_port
-CFNodeTLSKaifang
-CFNode landingCFThe area of ​​the website is：$IPArea
+Notice：If entered earlierrealityThe domain name isCFdomain name，The following functions will be activated：
+Can be applied in https://github.com/yonggekkk/Cloudflare_vless_trojan Created in a projectCF vless/trojan node
+1,Proxyip(With port)The information is as follows：
+Method one global application：Set variable name：proxyip    Set variable value：$IP:$vless_port  
+Method 2 single node application：pathChange the path to：/pyip=$IP:$vless_port
+CFNode'sTLSCan be turned on or off
+CFThe node lands atCFThe area of ​​the website is：$IPArea
 
-2、Non -standard port anti -inverterIPThe information is as follows：
-Client preferablyIPAddress：$IP，port：$vless_port
-CFNodeTLSMust open
-CFNodes landCFThe area of ​​the website is：$IPArea
+2, non-standard port anti-generationIPThe information is as follows：
+Client preferredIPAddress is：$IP，port：$vless_port
+CFNode'sTLSMust be turned on
+CFNode landed to nonCFThe area of ​​the website is：$IPArea
 
-Note：ifserv00ofIPWall，proxyipStill effective，但用于客户端地址与端口of非标端口反代IPUnavailable
-Note：Maybe a big man will sweepServ00ReverseIPAs a sharingIPLibrary or sale，Please be carefulrealityDomain name setCFdomain name
+Note：ifserv00ofIPBeing walled，proxyipStill effective，But non-standard port anti-generation used for client addresses and portsIPWill not be available
+Note：Maybe some guys can scanServ00Anti-generationIPShare as itsIPLibrary or for sale，Please be carefulrealityThe domain name is set toCFdomain name
 -------------------------------------------------------------------------------------------------
 
 
-two、Vmess-wsShare the link three forms as follows：
+two,Vmess-wsThe three forms of sharing links are as follows：
 
-1、Vmess-wsMaster node sharing links as follows：
-(This node does not support the defaultCDN，If set toCDNReturn source(Domain name)：The client address can be modified and preferred by itselfIP/domain name，7indivual80Change the port port casually，Can be used by the wall！)
+1,Vmess-wsThe main node sharing link is as follows：
+(This node does not support it by defaultCDN，If set toCDNReturn to source(Domain name required)：Client address can be modified by itselfIP/domain name，7indivual80Change the port at will，It can still be used by wall！)
 $vmws_link
 
 Argodomain name：${argodomain}
-IfArgoTemporary domain names are not generated，the following 2 and 3 ofArgoNodes will not be available (OpenArgofixed/Temporary Domain Home Page，showHTTP ERROR 404Explanation of normal available)
+If aboveArgoTemporary domain name not generated，the following 2 and 3 ofArgoThe node will not be available (OpenArgofixed/Temporary domain name page，showHTTP ERROR 404Instructions are available normally)
 
-2、Vmess-ws-tls_ArgoShare the link as follows： 
-(The node isCDNPreferredIPnode，客户端地址可自行修改PreferredIP/domain name，6indivual443Change the port port casually，Can be used by the wall！)
+2,Vmess-ws-tls_ArgoShare links are as follows： 
+(This node isCDNPreferredIPnode，Client address can be modified by itselfIP/domain name，6indivual443Change the port at will，It can still be used by wall！)
 $vmatls_link
 
-3、Vmess-ws_ArgoShare the link as follows：
-(The node isCDNPreferredIPnode，客户端地址可自行修改PreferredIP/domain name，7indivual80Change the port port casually，Can be used by the wall！)
+3,Vmess-ws_ArgoShare links are as follows：
+(This node isCDNPreferredIPnode，Client address can be modified by itselfIP/domain name，7indivual80Change the port at will，It can still be used by wall！)
 $vma_link
 -------------------------------------------------------------------------------------------------
 
 
-three、HY2Share the link as follows：
+three,HY2Share links are as follows：
 $hy2_link
 -------------------------------------------------------------------------------------------------
 
 
-Four、The convergence of the above five nodes sharing links are as follows：
+4. The aggregation of the above five nodes is as follows：
 $V2rayN_LINK
 
 The above five nodes aggregate universal sharing code：
@@ -1124,7 +1112,7 @@ $baseurl
 -------------------------------------------------------------------------------------------------
 
 
-five、CheckSing-boxandClash-metaSubscribe to configuration file，Please enter the main menu and select4
+5. Check itSing-boxandClash-metaSubscription configuration file，Please enter the main menu to select4
 
 Clash-metaSubscribe to share link：
 $Clashmeta_LINK
@@ -1141,10 +1129,24 @@ sleep 2
 rm -rf sb.log core tunnel.yml tunnel.json fake_useragent_0.2.0.json
 }
 
+if [[ "$resport" =~ ^[Yy]$ ]]; then
+portlist=$(devil port list | grep -E '^[0-9]+[[:space:]]+[a-zA-Z]+' | sed 's/^[[:space:]]*//')
+if [[ -z "$portlist" ]]; then
+yellow "No port"
+else
+while read -r line; do
+port=$(echo "$line" | awk '{print $1}')
+port_type=$(echo "$line" | awk '{print $2}')
+yellow "Delete the port $port ($port_type)"
+devil port del "$port_type" "$port"
+done <<< "$portlist"
+fi
+check_port
+fi
+rm -rf $HOME/domains/${snb}.${USERNAME}.serv00.net/logs/*
 install_singbox() {
 cd $WORKDIR
 read_ip
-argo_configure
 uuidport
 download_and_run_singbox
 get_links
