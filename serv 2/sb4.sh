@@ -13,18 +13,21 @@ reading() { read -p "$(red "$1")" "$2"; }
 export LC_ALL=C
 HOSTNAME=$(hostname)
 USERNAME=$(whoami | tr '[:upper:]' '[:lower:]')
-export UUID=${UUID:-$(uuidgen -r)} 
-export NEZHA_SERVER=${NEZHA_SERVER:-''} 
-export NEZHA_PORT=${NEZHA_PORT:-''}     
-export NEZHA_KEY=${NEZHA_KEY:-''} 
+export UUID=${UUID:-$(uuidgen -r)}          
+export NEZHA_SERVER=${NEZHA_SERVER:-''}  # v1Nezha Form：nezha.abc.com:8008,v0Nezha Form：nezha.abc.com
+export NEZHA_PORT=${NEZHA_PORT:-''}      # v1Nezha does not need this variable
+export NEZHA_KEY=${NEZHA_KEY:-''}        # v1ofNZ_CLIENT_SECRETorv0ofagentKey
 export ARGO_DOMAIN=${ARGO_DOMAIN:-''}   
 export ARGO_AUTH=${ARGO_AUTH:-''}
 export CFIP=${CFIP:-'www.visa.com.tw'} 
 export CFPORT=${CFPORT:-'443'} 
 export SUB_TOKEN=${SUB_TOKEN:-${UUID:0:8}}
+export CHAT_ID=${CHAT_ID:-''} 
+export BOT_TOKEN=${BOT_TOKEN:-''}
+export UPLOAD_URL=${UPLOAD_URL:-''} 
 
 [[ "$HOSTNAME" == "s1.ct8.pl" ]] && WORKDIR="${HOME}/domains/${USERNAME}.ct8.pl/logs" && FILE_PATH="${HOME}/domains/${USERNAME}.ct8.pl/public_html" || WORKDIR="${HOME}/domains/${USERNAME}.serv00.net/logs" && FILE_PATH="${HOME}/domains/${USERNAME}.serv00.net/public_html"
-rm -rf "$WORKDIR" && mkdir -p "$WORKDIR" "$FILE_PATH" && chmod 777 "$WORKDIR" "$FILE_PATH" >/dev/null 2>&1
+rm -rf "$WORKDIR" && mkdir -p "$WORKDIR" "$FILE_PATH" && chmod 777 "$WORKDIR" >/dev/null 2>&1
 bash -c 'ps aux | grep $(whoami) | grep -v "sshd\|bash\|grep" | awk "{print \$2}" | xargs -r kill -9 >/dev/null 2>&1' >/dev/null 2>&1
 command -v curl &>/dev/null && COMMAND="curl -so" || command -v wget &>/dev/null && COMMAND="wget -qO" || { red "Error: neither curl nor wget found, please install one of them." >&2; exit 1; }
 
@@ -85,6 +88,7 @@ if [[ $tcp_ports -ne 1 || $udp_ports -ne 2 ]]; then
         done
     fi
     green "Port adjustment completed,Will be disconnectedsshconnect,Please reconnectshhRe-execute the script"
+    quick_command
     devil binexec on >/dev/null 2>&1
     kill -9 $(ps -o ppid= -p $$) >/dev/null 2>&1
 else
@@ -110,11 +114,11 @@ else
     EXIST_SITE=$(devil www list | awk -v username="${USERNAME}" '$1 == username".serv00.net" {print $0}')
     if [ -n "$EXIST_SITE" ]; then
         red "Does not exist${USERNAME}.serv00.netofphpSite,Adjusting for you..."
-        devil www del "${USERNAME}.serv00.net" > /dev/null 2>&1
-        devil www add "${USERNAME}.serv00.net" php "$HOME/domains/${USERNAME}.serv00.net" > /dev/null 2>&1
+        devil www del "${USERNAME}.serv00.net" >/dev/null 2>&1
+        devil www add "${USERNAME}.serv00.net" php "$HOME/domains/${USERNAME}.serv00.net" >/dev/null 2>&1
         green "Deleted the old site and created a new onephpSite"
     else
-        devil www add "${USERNAME}.serv00.net" php "$HOME/domains/${USERNAME}.serv00.net" > /dev/null 2>&1
+        devil www add "${USERNAME}.serv00.net" php "$HOME/domains/${USERNAME}.serv00.net" >/dev/null 2>&1
         green "phpSite creation is completed"
     fi
 fi
@@ -156,7 +160,7 @@ generate_config() {
 
   yellow "Get AvailableIPmiddle,Please wait..."
   available_ip=$(get_ip)
-  purple "Current selectionIPfor：$available_ip If the node does not work after installation, try reinstalling"
+  purple "Current selectionIPfor: $available_ip If the node does not work after installation, try reinstalling"
   
 cat > config.json <<EOF
 {
@@ -527,14 +531,75 @@ tuic://$UUID:admin123@$available_ip:$TUIC_PORT?sni=www.bing.com&congestion_contr
 EOF
 cat ${FILE_PATH}/list.txt
 generate_sub_link
-yellow "\nServ00|ct8Old Kingsing-boxOne-click four-protocol installation script(vmess-ws|vmess-ws-tls(argo)|hysteria2|tuic)\n"
+install_keepalive
+yellow "Serv00|ct8Old Kingsing-boxOne-click four-protocol no interactive installation script(vmess-ws|vmess-ws-tls(argo)|hysteria2|tuic)\n"
 echo -e "${green}issuesfeedback：${re}${yellow}https://github.com/eooce/Sing-box/issues${re}\n"
 echo -e "${green}Feedback Forum：${re}${yellow}https://bbs.vps8.me${re}\n"
 echo -e "${green}TGFeedback Group：${re}${yellow}https://t.me/vps888${re}\n"
 purple "Please be famous for reprinting，Please do not abuse\n"
 green "Running done!\n"
-rm -rf boot.log config.json sb.log core tunnel.yml tunnel.json fake_useragent_0.2.0.json
+rm -rf sb.log core boot.log config.json tunnel.yml tunnel.json fake_useragent_0.2.0.json
 
+}
+
+install_keepalive () {
+    purple "Installing the keep-alive service,Please wait......"
+    keep_path="$HOME/domains/keep.${USERNAME}.serv00.net/public_nodejs"
+    [ -d "$keep_path" ] || mkdir -p "$keep_path"
+    app_file_url="https://00.ssss.nyc.mn/app.js"
+    $COMMAND "${keep_path}/app.js" "$app_file_url"
+
+    cat > ${keep_path}/.env <<EOF
+UUID=${UUID}
+CFIP=${CFIP}
+CFPORT=${CFPORT}
+SUB_TOKEN=${UUID:0:8}
+API_SUB_URL=${UPLOAD_URL}
+TELEGRAM_CHAT_ID=${CHAT_ID}
+TELEGRAM_BOT_TOKEN=${BOT_TOKEN}
+NEZHA_SERVER=${NEZHA_SERVER}
+NEZHA_PORT=${NEZHA_PORT}
+NEZHA_KEY=${NEZHA_KEY}
+ARGO_DOMAIN=${ARGO_DOMAIN}
+ARGO_AUTH=$([[ -z "$ARGO_AUTH" ]] && echo "" || ([[ "$ARGO_AUTH" =~ ^\{.* ]] && echo "'$ARGO_AUTH'" || echo "$ARGO_AUTH"))
+EOF
+    devil www add keep.${USERNAME}.serv00.net nodejs /usr/local/bin/node18 > /dev/null 2>&1
+    ln -fs /usr/local/bin/node18 ~/bin/node > /dev/null 2>&1
+    ln -fs /usr/local/bin/npm18 ~/bin/npm > /dev/null 2>&1
+    mkdir -p ~/.npm-global
+    npm config set prefix '~/.npm-global'
+    echo 'export PATH=~/.npm-global/bin:~/bin:$PATH' >> $HOME/.bash_profile && source $HOME/.bash_profile
+    rm -rf $HOME/.npmrc > /dev/null 2>&1
+    cd ${keep_path} && npm install dotenv axios --silent > /dev/null 2>&1
+    rm $HOME/domains/keep.${USERNAME}.serv00.net/public_nodejs/public/index.html > /dev/null 2>&1
+    # devil www options keep.${USERNAME}.serv00.net sslonly on > /dev/null 2>&1
+    devil www restart keep.${USERNAME}.serv00.net > /dev/null 2>&1
+    if curl -skL "http://keep.${USERNAME}.serv00.net/start" | grep -q "running"; then
+        green "\nFully automatic maintenance service installation successfully\n"
+	green "All services are running normally,Automatically keep-alive task added successfully\n\n"
+        purple "access http://keep.${USERNAME}.serv00.net/stop End the process\n"
+        purple "access http://keep.${USERNAME}.serv00.net/list All process list\n"
+        yellow "access http://keep.${USERNAME}.serv00.net/start Reset the keep-alive procedure\n"
+        purple "access http://keep.${USERNAME}.serv00.net/status Check the process status\n\n"
+        purple "If neededTGnotify,exist${yellow}https://t.me/laowang_serv00_bot${re}${purple}GetCHAT_ID,WithCHAT_IDEnvironment variables run${re}\n\n"
+        quick_command
+    else
+        red "\nInstallation of fully automatic keep-alive service failed,There is an unrunning process\naccess ${yellow}http://keep.${USERNAME}.serv00.net/status ${red}examine,It is recommended to execute the following command and reinstall it: \n\ndevil www del ${USERNAME}.serv00.net\ndevil www del keep.${USERNAME}.serv00.net\nrm -rf $HOME/domains/*\nshopt -s extglob dotglob\nrm -rf $HOME/!(domains|mail|repo|backups)\n\n${re}"
+    fi
+}
+
+quick_command() {
+  COMMAND="00"
+  SCRIPT_PATH="$HOME/bin/$COMMAND"
+  mkdir -p "$HOME/bin"
+  echo "#!/bin/bash" > "$SCRIPT_PATH"
+  echo "bash <(curl -Ls https://raw.githubusercontent.com/eooce/sing-box/main/sb_serv00.sh)" >> "$SCRIPT_PATH"
+  chmod +x "$SCRIPT_PATH"
+  if [[ ":$PATH:" != *":$HOME/bin:"* ]]; then
+      echo "export PATH=\"\$HOME/bin:\$PATH\"" >> "$HOME/.bashrc"
+      source "$HOME/.bashrc"
+  fi
+  green "Shortcut command00Created successfully,Next time you run the input00Quick Start\n"
 }
 
 install_singbox() {

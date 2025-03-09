@@ -1,18 +1,18 @@
 #!/bin/bash 
 
-# This version has no Nezha，Only keep the node,Put this filevps，After filling in the following server configurationbash keep.shJust run
-# If you need to run on the Qinglong panel，Note or delete this file35to74OK,Keep the middle of the middle56OK
-# TelegramMessage reminder configuration(Optional，You don't need to leave empty)
-TG_CHAT_ID="12345678"                        # Replace it with youTG chat_id
-TG_BOT_TOKEN=""                              # Replace it with youTGrobottoken
+# None of this version，Only keep the nodes alive,Put this file invps，After filling in the following server configurationbash keep.shJust run
+# If you need to run it on the Qinglong panel，Comment or delete the35to74OK,Keep the middle56OK
+# TelegramMessage reminder configuration(Optional，No need to leave empty)
+TG_CHAT_ID="12345678"                        # Replace with yoursTG chat_id
+TG_BOT_TOKEN=""                              # Replace with yoursTGrobottoken
 
-# The following configuration does not need to be empty or defaults to the default
+# The following configurations are not required to be left blank or left to default
 export UUID=${UUID:-'bc97f674-c578-4940-9234-0a1da46041b0'}  # UUID
 export CFIP=${CFIP:-'www.visa.com.tw'}       # Preferred domain name or preferredip
 export CFPORT=${CFIPPORT:-'443'}             # Preferred domain name or preferredipCorresponding port
-export SUB_TOKEN=${SUB_TOKEN:-'sub'}         # subscriptiontoken
+export SUB_TOKEN=${SUB_TOKEN:-${UUID:0:8}}   # subscriptiontoken
 
-# serv00orct8Server and port configuration,Please fill in in the following format,Each variable is separated by the colon in an English input method
+# serv00orct8Server and port configuration,Please fill in the following format,Each variable is separated by a colon in English input state
 declare -A servers=(  # account:password:tcpport:udp1port:udp2port:argodomain name:Argotunneljsonortoken 
     ["s0.serv00.com"]='abcd:abd12345678:1234:2345:3455:s0.2go.com:{"AccountTag":"8b9724080e55e70370fb74287922f31b","TunnelSecret":"C+OA5/LjJz9UHZ0vOkCC5PVRkvXiPhrWNcnxJBrfTPc=","TunnelID":"28125b91-34309-44d2-94be-b5e718944dad"}'
     ["s1.serv00.com"]='abcd:dbc12345678:1234:2345:3455:s1.2go.com:{"AccountTag":"8b9724080e55e70370fb74287922f31b","TunnelSecret":"C+OA5/LjJz9UHZ0vOkCC5PVRkvXiPhrWNcnxJBrfTPc=","TunnelID":"28125b91-34309-44d2-94be-b5e718944dad"}'
@@ -23,10 +23,10 @@ declare -A servers=(  # account:password:tcpport:udp1port:udp2port:argodomain na
     ["s6.serv00.com"]='abcd:dsd12345678:1234:2345:3455:s6.2go.com:{"AccountTag":"8b9724080e55e70370fb74287922f31b","TunnelSecret":"C+OA5/LjJz9UHZ0vOkCC5PVRkvXiPhrWNcnxJBrfTPc=","TunnelID":"28125b91-34309-44d2-94be-b5e718944dad"}'
     ["s7.serv00.com"]='abcd:dsd12345678:1234:2345:3455:s7.2go.com:{"AccountTag":"8b9724080e55e70370fb74287922f31b","TunnelSecret":"C+OA5/LjJz9UHZ0vOkCC5PVRkvXiPhrWNcnxJBrfTPc=","TunnelID":"28125b91-34309-44d2-94be-b5e718944dad"}'
     ["s8.serv00.com"]='abcd:dss12345678:1234:2345:3455:s8.2go.com:{"AccountTag":"8b9724080e55e70370fb74287922f31b","TunnelSecret":"C+OA5/LjJz9UHZ0vOkCC5PVRkvXiPhrWNcnxJBrfTPc=","TunnelID":"28125b91-34309-44d2-94be-b5e718944dad"}'
-    # Add more server......
+    # Add more servers......
 )
 
-# Define color
+# Define the color
 red() { echo -e "\e[1;91m$1\033[0m"; }
 green() { echo -e "\e[1;32m$1\033[0m"; }
 yellow() { echo -e "\e[1;33m$1\033[0m"; }
@@ -44,7 +44,7 @@ install_packages() {
     elif [ -f /etc/alpine-release ]; then
         package_manager="apk add"
     else
-        red "Unwilling system architecture！"
+        red "Unsupported system architecture！"
         exit 1
     fi
     $package_manager sshpass curl netcat-openbsd jq cron >/dev/null 2>&1 &
@@ -52,10 +52,10 @@ install_packages() {
 install_packages
 clear
 
-# End the residue process of the last operation（Exclude the current process）
+# End the residual process that was last run（Exclude the current process）
 bash -c 'ps aux | grep -E "/bin/bash /root/keep.sh|sshpass|ssh|curl" | grep -v "pts/" | awk "\$2 != \"'$$'\" {print \$2}" | xargs kill -9 > /dev/null 2>&1' >/dev/null 2>&1 &
 
-# Add timing task
+# Add timed tasks
 add_cron_job() {
     if [ -f /etc/alpine-release ]; then
         if ! command -v crond >/dev/null 2>&1; then
@@ -63,17 +63,17 @@ add_cron_job() {
             rc-update add crond && rc-service crond start
         fi
     fi
-    # Check whether the timing task already exists
+    # Check if the timing task already exists
     if ! crontab -l 2>/dev/null | grep -q "$SCRIPT_PATH"; then
         (crontab -l 2>/dev/null; echo "*/2 * * * * /bin/bash $SCRIPT_PATH >> /root/keep_00.log 2>&1") | crontab -
-        green "Planning task has been added，Execute every two minutes"
+        green "Scheduled tasks added，Perform every two minutes"
     else
-        purple "The planned task already exists，Skip the additional plan task"
+        purple "The planned task already exists，Skip to add scheduled tasks"
     fi
 }
 add_cron_job
 
-# examine TCP Whether the port is unobstructed
+# examine TCP Is the port smooth?
 check_tcp_port() {
     local host=$1
     local port=$2
@@ -81,7 +81,7 @@ check_tcp_port() {
     return $?
 }
 
-# examine Argo Whether the tunnel is online
+# examine Argo Is the tunnel online?
 check_argo_tunnel() {
     local argo_domain=$1
     if [ -z "$argo_domain" ]; then
@@ -96,7 +96,7 @@ check_argo_tunnel() {
     fi
 }
 
-# Send reminder messageTG
+# Send a reminder message toTG
 send_telegram_message() {
     local message="$1"
     if [ -n "$TG_BOT_TOKEN" ] && [ -n "$TG_CHAT_ID" ]; then
@@ -123,10 +123,10 @@ run_remote_command() {
     sshpass -p "$ssh_pass" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=60 "$ssh_user@$host" "$remote_command"
 }
 
-# if3Sub -test failed，Send a message toTG，connect SSH And execute remote commands
+# if3The test failed，Send a message toTG，connect SSH and execute remote commands
 connect_ssh() {
     if [ $tcp_attempt -ge 3 ] || [ $argo_attempt -ge 3 ]; then
-        local alert_message="⚠️ Serv00Abnormal alert
+        local alert_message="⚠️ Serv00Exception alarm
 
 📅 time: $time
 👤 Account: $ssh_user
@@ -134,53 +134,51 @@ connect_ssh() {
 
         if [ $tcp_attempt -ge 3 ]; then
             alert_message="$alert_message
-❌ DetectTCPport $tcp_port Unprepared"
+❌ DetectedTCPport $tcp_port Not working"
         fi
         if [ $argo_attempt -ge 3 ]; then
             alert_message="$alert_message
-❌ DetectArgotunnel $argo_domain Line"
+❌ DetectedArgotunnel $argo_domain Offline"
         fi
 
         # Send an alarm message
         send_telegram_message "$alert_message"
         
-        yellow "$time Multiple test failure，Try to passSSHConnect and remotely execute commands  server: $host  Account: $ssh_user"
+        yellow "$time Multiple tests failed，Try to passSSHConnect and execute commands remotely  server: $host  Account: $ssh_user"
         
         ssh_output=$(sshpass -p "$ssh_pass" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=60 "$ssh_user@$host" -q exit 2>&1)
         
-        # Check whether the account is blocked
+        # Check whether the account has been blocked
         if echo "$ssh_output" | grep -q "HAS BEEN BLOCKED"; then
-            red "$time  The account has been banned server: $host  Account: $ssh_user"
-            # Send an account ban reminder reminder
-            send_telegram_message "🚫 The account has been blocked
+            red "$time  Account has been banned server: $host  Account: $ssh_user"
+            # Send account block reminder
+            send_telegram_message "🚫 Account has been blocked
 
 👤 Account: $ssh_user
 🖥️ server: $host
-⚠️ Please remove as soon as possiblekeepAccount banned in the file"
+⚠️ Please remove it as soon as possiblekeepAccount blocked in the file"
             return 0
         fi
 
-        # examine SSH Whether the connection is successful
+        # examine SSH Is the connection successful?
         if [ $? -eq 0 ]; then
-            green "$time  SSHRemote connection successfully server: $host  Account : $ssh_user"
+            green "$time  SSHRemote connection is successful server: $host  Account : $ssh_user"
             output=$(run_remote_command "$host" "$ssh_user" "$ssh_pass" "$tcp_port" "$udp1_port" "$udp2_port" "$argo_domain" "$argo_auth")
             yellow "Remote command execution results：\n"
             echo "$output"
 
             # Send service recovery message
-            send_telegram_message "✅ Serv00The service has been restored
+            send_telegram_message "✅ Serv00Service has been restored
 
 👤 Account: $ssh_user
 🖥️ server: $host
-📡 Node subscription：
-V2rayN: https://$ssh_user.serv00.net/${SUB_TOKEN}_v2.log
-Clash: https://$ssh_user.serv00.net/get_sub.php?file=${SUB_TOKEN}_clash.yaml
-Sing-box: https://$ssh_user.serv00.net/get_sub.php?file=${SUB_TOKEN}_singbox.yaml"
+📡 Adaptive node subscription link：
+https://${ssh_user}.serv00.net/${SUB_TOKEN}"
             return 0
         else
-            red "$time  Failed to connect，Please check your account password server: $host  Account: $ssh_user"
-            # Notice of sending failure
-            send_telegram_message "❌ SSHFailed to connect
+            red "$time  Connection failed，Please check your account password server: $host  Account: $ssh_user"
+            # Send a failure notification
+            send_telegram_message "❌ SSHConnection failed
 
 👤 Account: $ssh_user
 🖥️ server: $host
@@ -190,7 +188,7 @@ Sing-box: https://$ssh_user.serv00.net/get_sub.php?file=${SUB_TOKEN}_singbox.yam
     fi
 }
 
-# Circulation of the server list detection
+# Looping through server list detection
 for host in "${!servers[@]}"; do
     IFS=':' read -r ssh_user ssh_pass tcp_port udp1_port udp2_port argo_domain argo_auth <<< "${servers[$host]}"
 
@@ -206,7 +204,7 @@ for host in "${!servers[@]}"; do
             tcp_attempt=0
             break
         else
-            red "$time  TCPport${tcp_port}Unprepared server: $host  Account: $ssh_user"
+            red "$time  TCPport${tcp_port}Not working server: $host  Account: $ssh_user"
             sleep 5
             tcp_attempt=$((tcp_attempt+1))
             connect_ssh
@@ -216,7 +214,7 @@ for host in "${!servers[@]}"; do
     # # examine Argo tunnel
     while [ $argo_attempt -lt $max_attempts ]; do
         if check_argo_tunnel "$argo_domain"; then
-            green "$time  Argo Tunnel online Argodomain name: $argo_domain   Account: $ssh_user\n"
+            green "$time  Argo Tunnel Online Argodomain name: $argo_domain   Account: $ssh_user\n"
             argo_attempt=0
             break
         else
@@ -226,5 +224,4 @@ for host in "${!servers[@]}"; do
             connect_ssh
         fi
     done
-   
 done
