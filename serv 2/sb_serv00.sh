@@ -60,7 +60,7 @@ if [[ $tcp_ports -ne 1 || $udp_ports -ne 2 ]]; then
                 green "AddedTCPport: $tcp_port"
                 break
             else
-                yellow "port $tcp_port Not available，Try another port..."
+                yellow "port $tcp_port Not available，尝试其他port..."
             fi
         done
     fi
@@ -80,11 +80,11 @@ if [[ $tcp_ports -ne 1 || $udp_ports -ne 2 ]]; then
                 fi
                 udp_ports_added=$((udp_ports_added + 1))
             else
-                yellow "port $udp_port Not available，Try another port..."
+                yellow "port $udp_port Not available，尝试其他port..."
             fi
         done
     fi
-    green "Port adjustment completed,Will be disconnectedsshconnect,Please reconnectshhRe-execute the script"
+    green "Port adjustment completed,Will be disconnectedsshconnect,请重新connectshhRe-execute the script"
     quick_command
     devil binexec on >/dev/null 2>&1
     kill -9 $(ps -o ppid= -p $$) >/dev/null 2>&1
@@ -104,7 +104,7 @@ export HY2_PORT=$udp_port2
 }
 
 changge_ports() {
-reading "All ports will be deleted and then opened randomly1indivualtcpPorts and2indivualudpport,Are you sure to continue?(Enter directly to confirm the replacement)y/n: " choice
+reading "All ports will be deleted and then opened randomly1indivualtcpPorts and2indivualudpport,Are you sure to continue?(Enter directly to confirm the replacement)【y/n】: " choice
 
 if [[ -z "$choice" || "$choice" == "y" || "$choice" == "Y" ]]; then
     devil port list | grep -E "^\s*[0-9]+" | while read -r line; do
@@ -156,7 +156,7 @@ read_nz_variables() {
       green "Running Nezha Probe with custom variable Nezha"
       return
   else
-      reading "Is it necessary to install Nezha probe?？(Directly press the car and no installation)y/n: " nz_choice
+      reading "Is it necessary to install Nezha probe?？(Directly press the car and no installation)【y/n】: " nz_choice
       [[ -z $nz_choice ]] && return
       [[ "$nz_choice" != "y" && "$nz_choice" != "Y" ]] && return
       reading "\nPlease enter the domain name of Nezha probe orip\nv1Nezha Form：nezha.abc.com:8008,v0Nezha Form：nezha.abc.com :" NEZHA_SERVER
@@ -176,7 +176,7 @@ read_nz_variables() {
 install_singbox() {
 bash -c 'ps aux | grep $(whoami) | grep -v "sshd\|bash\|grep" | awk "{print \$2}" | xargs -r kill -9 >/dev/null 2>&1' >/dev/null 2>&1
 echo -e "${yellow}This script coexists at the same time.${purple}(vmess-ws,vmess-ws-tls(argo),hysteria2,tuic)${re}"
-reading "\nAre you sure to continue installing?？(Enter directly to confirm the installation)y/n: " choice
+reading "\nAre you sure to continue installing?？(Enter directly to confirm the installation)【y/n】: " choice
   case "${choice:-y}" in
     [Yy]|"")
     	clear
@@ -196,7 +196,7 @@ reading "\nAre you sure to continue installing?？(Enter directly to confirm the
 
 
 uninstall_singbox() {
-  reading "\nAre you sure you want to uninstall？y/n: " choice
+  reading "\nAre you sure you want to uninstall？【y/n】: " choice
     case "$choice" in
         [Yy])
 	    bash -c 'ps aux | grep $(whoami) | grep -v "sshd\|bash\|grep" | awk "{print \$2}" | xargs -r kill -9 >/dev/null 2>&1' >/dev/null 2>&1
@@ -216,7 +216,7 @@ uninstall_singbox() {
 }
 
 reset_system() {
-reading "\nAre you sure to reset the system?？y/n: " choice
+reading "\nAre you sure to reset the system?？【y/n】: " choice
   case "$choice" in
     [Yy]) bash -c 'ps aux | grep $(whoami) | grep -v "sshd\|bash\|grep" | awk "{print \$2}" | xargs -r kill -9 >/dev/null 2>&1' >/dev/null 2>&1
           find "${HOME}" -mindepth 1 ! -name "domains" ! -name "mail" ! -name "repo" ! -name "backups" ! -name ".*" -exec rm -rf {} + > /dev/null 2>&1
@@ -231,7 +231,7 @@ reading "\nAre you sure to reset the system?？y/n: " choice
 
 argo_configure() {
   if [[ -z $ARGO_AUTH || -z $ARGO_DOMAIN ]]; then
-      reading "Is it necessary to use fixedargotunnel？(Directly enter the car to use a temporary tunnel)y/n: " argo_choice
+      reading "Is it necessary to use fixedargotunnel？(直接回车将使用临时tunnel)【y/n】: " argo_choice
       [[ -z $argo_choice ]] && return
       [[ "$argo_choice" != "y" && "$argo_choice" != "Y" && "$argo_choice" != "n" && "$argo_choice" != "N" ]] && { red "Invalid selection，Please enteryorn"; return; }
       if [[ "$argo_choice" == "y" || "$argo_choice" == "Y" ]]; then
@@ -648,7 +648,7 @@ green "Running done!\n"
 
 install_keepalive () {
     clear
-    reading "Need or notTelegramnotify？(Directly press the car and it will not be enabled)y/n: " tg_notification
+    reading "Need or notTelegramnotify？(Directly press the car and it will not be enabled)【y/n】: " tg_notification
     if [[ "$tg_notification" == "y" || "$tg_notification" == "Y" ]]; then
 
         reading "Please enterTelegram chat ID (tgsuperior@laowang_serv00_botGet): " tg_chat_id
@@ -660,9 +660,9 @@ install_keepalive () {
         green "You setTelegram bot tokenfor: ${tg_token}"
     fi
 
-    reading "Is it necessary to keep Nezha probe？(Directly press the car and it will not be enabled)y/n: " keep_nezha
+    reading "Is it necessary to keep Nezha probe？(Directly press the car and it will not be enabled)【y/n】: " keep_nezha
     if [[ "$keep_nezha" == "y" || "$keep_nezha" == "Y" ]]; then
-        reading "Please enter the domain name of Nezha panel [v1Must have panel port]：" nezha_server
+        reading "Please enter the domain name of Nezha panel【v1Must have panel port】：" nezha_server
         green "Your Nezha panel domain name is: $nezha_server"
 
         if [[ "$nezha_server" != *":"* ]]; then
@@ -678,7 +678,7 @@ install_keepalive () {
         green "Your NezhaagentThe key is: $nezha_key"
     fi
 
-    reading "Is it necessary to set it upArgoFixed tunnel？(Directly enter the car to use a temporary tunnel)y/n: " argo
+    reading "Is it necessary to set it upArgoFixed tunnel？(Directly enter the car to use a temporary tunnel)【y/n】: " argo
     if [[ "$argo" == "y" || "$argo" == "Y" ]]; then
 
         reading "Please enterArgoFixed tunnel domain name: " argo_domain
