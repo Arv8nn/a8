@@ -10,7 +10,7 @@ echo "==================================================================="
 echo "==================================================================="
 
 yonggekkk_script="https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/serv%201/serv00.sh"
-eooce_script="https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/serv%202/sb4.sh"
+eooce_script="https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/serv%202/sb_serv00.sh"
 socks5_script="https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/socks5/install-socks5.sh"
 mtproxy_script="https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/mt.sh"
 
