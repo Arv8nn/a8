@@ -83,7 +83,7 @@ while true; do
             sleep 3
             socks5 ;;
         4) echo -e "${bold}${blue}runnig MTproxy serv00 script${reset}"
-        sleep 3
+            sleep 3
             MTproxy ;;
         5) echo -e "${bold}${green}exiting program${reset}"
             sleep 1
