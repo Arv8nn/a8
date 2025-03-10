@@ -75,7 +75,7 @@ while true; do
             yonggekkk
             echo -e "${bold}${red}return to menu (y | n)? "
             read a
-            if [ $a == y || $a == Y ]; then
+            if [ $a -eq "y" ] || [ $a -eq "y" ]; then
                 continue
             else
                 break
