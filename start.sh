@@ -15,25 +15,21 @@ mtproxy_script="https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/mt
 
 function yonggekkk () {
     clear
-    echo "$(tput setaf 2)runnig yonggekkk script$(tput sgr0)"
     bash <(curl -Ls "$yonggekkk_script") || echo "Error: Failed to execute script."
 }
 
 function eooce () {
     clear
-    echo "$(tput setaf 2)runnig eooce script$(tput sgr0)"
     bash <(curl -Ls "$eooce_script") || echo "Error: Failed to execute script."
 }
 
 function socks5 () {
     clear
-    echo "$(tput setaf 2)runnig serv00 socks5 script$(tput sgr0)"
     bash <(curl -Ls "$socks5_script") || echo "Error: Failed to execute script."
 }
 
 function MTproxy () {
     clear
-    echo "$(tput setaf 2)runnig serv00 MTproxy script$(tput sgr0)"
     bash <(curl -Ls "$mtproxy_script") || echo "Error: Failed to execute script."
 }
 
