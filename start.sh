@@ -75,11 +75,15 @@ while true; do
             yonggekkk
             echo -e "${bold}${red}return to menu (y | n)? "
             read a
-            if [[ $a = "y" || $a = "Y" ]]; then
-                continue
-            elif [[ $a = "n" || $a = "N" ]]; then
-                break
-            fi ;;
+            while true; do
+                if [[ $a = "y" || $a = "Y" ]]; then
+                    continue
+                elif [[ $a = "n" || $a = "N" ]]; then
+                    break
+                else
+                    echo -e "${bold}${red}choose valid option (y | n)${reset}"
+                fi ;;
+            done ;;
         2) clear
             echo -e "${bold}${blue}runnig eooce serv00 script${reset}"
             sleep 3
