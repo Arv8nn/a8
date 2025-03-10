@@ -72,7 +72,14 @@ while true; do
         1) clear
             echo -e "${bold}${blue}runnig yonggekkk serv00 script${reset}"
             sleep 3
-            yonggekkk ;;
+            yonggekkk
+            echo -e "${bold}${red}return to menu (y | n)? 
+            read a
+            if [ a == y || a == Y ]; then
+                continue
+            else
+                break
+            fi ;;
         2) clear
             echo -e "${bold}${blue}runnig eooce serv00 script${reset}"
             sleep 3
