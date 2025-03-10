@@ -73,9 +73,9 @@ while true; do
             echo -e "${bold}${blue}runnig yonggekkk serv00 script${reset}"
             sleep 3
             yonggekkk
-            echo -e "${bold}${red}return to menu (y | n)? "
-            read a
             while true; do
+                echo -e "${bold}${red}return to menu (y | n)? "
+                read a
                 if [[ $a = "y" || $a = "Y" ]]; then
                     continue
                 elif [[ $a = "n" || $a = "N" ]]; then
