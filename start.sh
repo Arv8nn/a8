@@ -73,16 +73,20 @@ while true; do
     menu
     echo ""
     case $option in
-        1) echo -e "${bold}${blue}runnig yonggekkk serv00 script${reset}"
+        1) clear
+            echo -e "${bold}${blue}runnig yonggekkk serv00 script${reset}"
             sleep 3
             yonggekkk ;;
-        2) echo -e "${bold}${blue}runnig eooce serv00 script${reset}"
+        2) clear
+            echo -e "${bold}${blue}runnig eooce serv00 script${reset}"
             sleep 3
             eooce ;;
-        3) echo -e "${bold}${blue}runnig socks5 serv00 script${reset}"
+        3) clear
+            echo -e "${bold}${blue}runnig socks5 serv00 script${reset}"
             sleep 3
             socks5 ;;
-        4) echo -e "${bold}${blue}runnig MTproxy serv00 script${reset}"
+        4) clear
+            echo -e "${bold}${blue}runnig MTproxy serv00 script${reset}"
             sleep 3
             MTproxy ;;
         5) echo -e "${bold}${green}exiting program${reset}"
