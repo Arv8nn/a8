@@ -82,7 +82,7 @@ while true; do
                     break
                 else
                     echo -e "${bold}${red}choose valid option (y | n)${reset}"
-                fi ;;
+                fi
             done ;;
         2) clear
             echo -e "${bold}${blue}runnig eooce serv00 script${reset}"
