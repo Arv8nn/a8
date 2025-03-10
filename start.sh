@@ -7,6 +7,7 @@ green="\033[32m"
 yellow="\033[33m"
 blue="\033[34m"
 cyan="\033[36m"
+
 yonggekkk_script="https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/serv%201/serv00.sh"
 eooce_script="https://raw.githubusercontent.com/eooce/sing-box/main/sb_serv00.sh"
 socks5_script="https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/socks5/install-socks5.sh"
@@ -55,7 +56,7 @@ function menu () {
     echo -e "${bold}\t${blue}source${reset}${bold}= yonggekkk , eooce , mtg , cmliu${reset}"
     echo "==================================================================="
     echo "==================================================================="
-    echo -e "${green}\t\t***** please select an option *****${reset}"
+    echo -e "${bold}${green}\t\t***** please select an option *****${reset}"
     echo -e "${yellow}\t1. yonggekkk serv00 script (vless , vmess , hy2 , tuic)\n"
     echo -e "\t2. eooce serv00 script (vless , vmess , hy2 , tuic)${reset}"
     echo -e "${red}\tthis script has problems whit other language so:"
@@ -72,11 +73,23 @@ while true; do
     menu
     echo ""
     case $option in
-        1) yonggekkk ;;
-        2) eooce ;;
-        3) socks5 ;;
-        4) MTproxy ;;
-        5) exit ;;
-        *) echo "choose a valid option [5 for Exit]"
+        1) echo -e "${bold}${blue}runnig yonggekkk serv00 script${reset}"
+            sleep 3
+            yonggekkk ;;
+        2) echo -e "${bold}${blue}runnig eooce serv00 script${reset}"
+            sleep 3
+            eooce ;;
+        3) echo -e "${bold}${blue}runnig socks5 serv00 script${reset}"
+            sleep 3
+            socks5 ;;
+        4) echo -e "${bold}${blue}runnig MTproxy serv00 script${reset}"
+        sleep 3
+            MTproxy ;;
+        5) echo -e "${bold}${green}exiting program${reset}"
+            sleep 1
+            exit ;;
+        *) echo -e "${red}${bold}choose a valid option [1-5]${reset}"
+            sleep 2
+            break ;;
     esac
 done
