@@ -77,7 +77,7 @@ while true; do
             read a
             if [[ $a = "y" || $a = "Y" ]]; then
                 continue
-            elif [[ $a = "n" || $a = "N" ]] 
+            elif [[ $a = "n" || $a = "N" ]]; then
                 break
             fi ;;
         2) clear
