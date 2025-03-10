@@ -1,5 +1,12 @@
 #!/bin/env bash
 
+reset="\033[0m"
+bold="\033[1m"
+red="\033[31m"
+green="\033[32m"
+yellow="\033[33m"
+blue="\033[34m"
+cyan="\033[36m"
 yonggekkk_script="https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/serv%201/serv00.sh"
 eooce_script="https://raw.githubusercontent.com/eooce/sing-box/main/sb_serv00.sh"
 socks5_script="https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/socks5/install-socks5.sh"
@@ -31,9 +38,8 @@ function MTproxy () {
 
 function menu () {
     clear
-    echo "$(tput bold)this script made by :"
-    tput sgr0
-    tput bold;tput blink;tput setaf 6
+    echo -e "${bold}this script made by :${reset}"
+    echo -e "${bold}${cyan}"
     echo '           _______      _____  _   _ 
         /\   |  __ \ \    / / _ \| \ | |
        /  \  | |__) \ \  / / (_) |  \| |
@@ -41,35 +47,26 @@ function menu () {
      / ____ \| | \ \  \  / | (_) | |\  |
     /_/    \_\_|  \_\  \/   \___/|_| \_|
     '
-    tput sgr0
-    echo "$(tput bold)welcome $(tput setaf 2)`whoami`"
-    tput sgr0
+    echo -e "$reset"
+    echo -e "${bold}welcome ${green}`whoami`${reset}"
     echo "==================================================================="
     echo "==================================================================="
-    tput bold
-    echo -e "\ttranslated by $(tput setaf 2)ARV8N$(tput sgr0)"
-    tput bold
-    echo -e "\t$(tput setaf 4)source$(tput sgr0) $(tput bold)= yonggekkk , eooce , mtg , cmliu"
-    tput sgr0
+    echo -e "${bold}\ttranslated by ${green}ARV8N${reset}"
+    echo -e "${bold}\t${blue}source${reset}${bold}= yonggekkk , eooce , mtg , cmliu${reset}"
     echo "==================================================================="
     echo "==================================================================="
-    tput setaf 2
-    echo -e "\t\t***** please select an option *****"
-    tput sgr0
-    tput setaf 3
-    echo -e "\t1. yonggekkk serv00 script (vless , vmess , hy2 , tuic)\n"
-    echo -e "\t2. eooce serv00 script (vless , vmess , hy2 , tuic)"
-    tput setaf 1
-    echo -e "\tthis script has problems whit other language so:"
+    echo -e "${green}\t\t***** please select an option *****${reset}"
+    echo -e "${yellow}\t1. yonggekkk serv00 script (vless , vmess , hy2 , tuic)\n"
+    echo -e "\t2. eooce serv00 script (vless , vmess , hy2 , tuic)${reset}"
+    echo -e "${red}\tthis script has problems whit other language so:"
     echo -e "\toption 1 for install. in the next steps just press enter"
     echo -e "\toption 2 for keepalive script"
-    echo -e "\tfor uninstall select option 3\n"
-    tput setaf 3 
-    echo -e "\t3. serv00 socks5\n"
+    echo -e "\tfor uninstall select option 3\n${reset}"
+    echo -e "${yellow}\t3. serv00 socks5\n"
     echo -e "\t4. serv00 MTproxy\n"
     echo -e "\t5. Exit\n"
     read -p "select what you want [1-5] : " option
-    tput sgr0
+    echo -e "${reset}"
 }
 while true; do
     menu
