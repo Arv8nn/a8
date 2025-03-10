@@ -79,19 +79,40 @@ while true; do
                 continue
             elif [[ $a = "n" || $a = "N" ]]; then
                 break 2
-                fi ;;
+            fi ;;
         2) clear
             echo -e "${bold}${blue}runnig eooce serv00 script${reset}"
             sleep 3
-            eooce ;;
+            eooce 
+            echo -e "${bold}${red}return to menu (y | n)? "
+            read a
+            if [[ $a = "y" || $a = "Y" ]]; then
+                continue
+            elif [[ $a = "n" || $a = "N" ]]; then
+                break 2
+            fi ;;
         3) clear
             echo -e "${bold}${blue}runnig socks5 serv00 script${reset}"
             sleep 3
-            socks5 ;;
+            socks5 
+            echo -e "${bold}${red}return to menu (y | n)? "
+            read a
+            if [[ $a = "y" || $a = "Y" ]]; then
+                continue
+            elif [[ $a = "n" || $a = "N" ]]; then
+                break 2
+            fi ;;
         4) clear
             echo -e "${bold}${blue}runnig MTproxy serv00 script${reset}"
             sleep 3
-            MTproxy ;;
+            MTproxy 
+            echo -e "${bold}${red}return to menu (y | n)? "
+            read a
+            if [[ $a = "y" || $a = "Y" ]]; then
+                continue
+            elif [[ $a = "n" || $a = "N" ]]; then
+                break 2
+            fi ;;
         5) echo -e "${bold}${green}exiting program${reset}"
             sleep 1
             exit ;;
