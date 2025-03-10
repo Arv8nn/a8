@@ -78,7 +78,7 @@ while true; do
             if [[ $a = "y" || $a = "Y" ]]; then
                 continue
             elif [[ $a = "n" || $a = "N" ]]; then
-                break
+                break 2
                 fi ;;
         2) clear
             echo -e "${bold}${blue}runnig eooce serv00 script${reset}"
