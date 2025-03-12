@@ -5,7 +5,7 @@
 
 Hysteria2, TUIC5, VLESS-Reality, VMESS-WS/ARGO
 
-> <ins>**automatic keep alive**.</ins>
+> <ins>**automatic keep alive**</ins>
 ---
 
 # لینک اصلی پروژه های اسکریپت دریافت کانفیگ
