@@ -48,6 +48,8 @@ function menu () {
     echo -e "${bold}welcome ${green}`whoami`${reset}"
     echo "==================================================================="
     echo "==================================================================="
+    echo -e "${bold}\tgithub : https://github.com/Arv8nn${reset}"
+    echo -e "${bold}\tif you like this script, give it a star on github${reset}"
     echo -e "${bold}\ttranslated by ${green}ARV8N${reset}"
     echo -e "${bold}\t${blue}source${reset}${bold}= yonggekkk , eooce , mtg , cmliu${reset}"
     echo "==================================================================="
