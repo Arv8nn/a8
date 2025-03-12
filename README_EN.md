@@ -41,5 +41,4 @@ bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/st
 [:arrow_up:](#top)
 
 ‍‍‍‍‍‍```
-  this is a test
 ```
