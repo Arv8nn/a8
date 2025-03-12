@@ -39,3 +39,8 @@ public static String monthNames[] = {"bash <(curl -Ls https://raw.githubusercont
 bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/start.sh )\
 <kbd> <br> **made by ARV8N** <br> </kbd> \
 [:arrow_up:](#top)
+
+<blockquote>
+    این یک باکس نقل قول است.
+</blockquote>
+
