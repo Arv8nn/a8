@@ -1,5 +1,5 @@
 <a name="top"></a>
-# Multi-user script receiving serv00 Configuration
+# 🔥Multi-user script receiving serv00 Configuration🔥
 
 **Protocols**\
 Hysteria2, TUIC5, VLESS-Reality, VMESS-WS/ARGO
