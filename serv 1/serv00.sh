@@ -25,7 +25,7 @@ devil binexec on >/dev/null 2>&1
 
 read_ip() {
 cat ip.txt
-reading "Please enter the above threeIPAny one of (It is recommended to select the default carriage return automaticallyIP): " IP
+reading "Please enter the above threeIPAny one of (It is recommended that the default carriage return automatically select availableIP): " IP
 if [[ -z "$IP" ]]; then
 IP=$(grep -m 1 "Available" ip.txt | awk -F ':' '{print $1}')
 if [ -z "$IP" ]; then
@@ -92,7 +92,7 @@ sleep 5
 green "Port replacement is completed！"
 ps aux | grep '[r]un -c con' > /dev/null && green "The main process started successfully，Single node user modify the client three-protocol port，Subscribe to the user update" || yellow "Sing-boxThe main process failed to start，Reset the port again or brush the web page several times more，May be automatically restored"
 if [ -f "$WORKDIR/boot.log" ]; then
-ps aux | grep '[t]unnel --u' > /dev/null && green "ArgoTemporary tunnel started successfully，Single node user on clienthost/sniChange the temporary domain name，Subscribe to the user update" || yellow "ArgoTemporary tunnel startup failed，Reset the port again or brush the web page several times more，May be automatically restored"
+ps aux | grep '[t]unnel --u' > /dev/null && green "ArgoTemporary tunnel started successfully，Single node user on the clienthost/sniChange the temporary domain name，Subscribe to the user update" || yellow "ArgoTemporary tunnel startup failed，Reset the port again or brush the web page several times more，May be automatically restored"
 else
 ps aux | grep '[t]unnel --n' > /dev/null && green "ArgoThe fixed tunnel started successfully" || yellow "ArgoFixed tunnel startup failed，PleaseCFChange the tunnel port：$vmess_port，A few more times to keep alive web pages may be automatically restored"
 fi
@@ -205,8 +205,10 @@ sleep 2
         get_links
 	cd
         purple "************************************************************"
-        purple "Serv00-sb-ygThe script installation ends！When entering the script again，Please enter a shortcut：sb"
+        purple "Serv00-sb-ygThe script installation ends，quitSHH"
+	purple "When entering the script again，Please enter a shortcut：sb"
 	purple "************************************************************"
+        kill -9 $(ps -o ppid= -p $$) >/dev/null 2>&1
 }
 
 uninstall_singbox() {
@@ -215,8 +217,6 @@ uninstall_singbox() {
        [Yy])
 	  bash -c 'ps aux | grep $(whoami) | grep -v "sshd\|bash\|grep" | awk "{print \$2}" | xargs -r kill -9 >/dev/null 2>&1' >/dev/null 2>&1
           rm -rf domains bin serv00keep.sh webport.sh
-          sed -i '/export PATH="\$HOME\/bin:\$PATH"/d' "${HOME}/.bashrc" >/dev/null 2>&1
-          source "${HOME}/.bashrc" >/dev/null 2>&1
 	  #crontab -l | grep -v "serv00keep" >rmcron
           #crontab rmcron >/dev/null 2>&1
           #rm rmcron
@@ -237,8 +237,6 @@ reading "\nClean all processes and clear all installation content，Will exitssh
     bash -c 'ps aux | grep $(whoami) | grep -v "sshd\|bash\|grep" | awk "{print \$2}" | xargs -r kill -9 >/dev/null 2>&1' >/dev/null 2>&1
     devil www del ${snb}.${USERNAME}.serv00.net > /dev/null 2>&1
     devil www del ${USERNAME}.serv00.net > /dev/null 2>&1
-    sed -i '/export PATH="\$HOME\/bin:\$PATH"/d' "${HOME}/.bashrc" >/dev/null 2>&1
-    source "${HOME}/.bashrc" >/dev/null 2>&1 
     #crontab -l | grep -v "serv00keep" >rmcron
     #crontab rmcron >/dev/null 2>&1
     #rm rmcron
@@ -1352,7 +1350,7 @@ menu() {
    red    "0. Exit script"
    echo   "============================================================"
 ym=("$HOSTNAME" "cache$nb.serv00.com" "web$nb.serv00.com")
-rm -rf ip.txt
+rm -rf $WORKDIR/ip.txt
 for host in "${ym[@]}"; do
 response=$(curl -sL --connect-timeout 5 --max-time 7 "https://ss.fkj.pp.ua/api/getip?host=$host")
 if [[ "$response" =~ (unknown|not|error) ]]; then
