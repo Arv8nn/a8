@@ -18,7 +18,7 @@ https://github.com/eooce/Sing-box
 > [!important]
 > هر اسکریپتی که برای دریافت کانفیگ نصب می کنید از همان اسکریپت برای حذف استفاده کنید.
 
-# socks5
+- ## socks5
 
 https://github.com/cmliu/socks5-for-serv00
 > [!note]
@@ -27,14 +27,18 @@ https://github.com/cmliu/socks5-for-serv00
 > [!important]
 > سایت بیشتر از 3 پورت باز ساپورت نمی کند. پس برای استفاده از socks5 در کنار کانفیگ ها می تونید به دلخواه یک پورت udp رو پاک کنید.
 
-# پروکسی تلگرام
+- ## پروکسی تلگرام
 > [!note]
 > برای استفاده از پروکسی تلگرام ابتدا در DevilWEB webpanel لاگین کرده و در قسمت port reservation یک پورت tcp با مقدار 60000-1025 ایجاد کرده سپس اسکریپت serv00 MTproxy اجرا کنید.
 
-> [important]
+> [!important]
 > سایت بیشتر از 3 پورت باز ساپورت نمی کند. پس برای استفاده از پروکسی تلگرام در کنار کانفیگ ها می تونید به دلخواه یک udp رو پاک کنید.
 
 # نصب:
 
+```
 bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/start.sh)
-# made by ARV8N
+```
+<kbd> <br> **made by ARV8N** <br> </kbd> 
+
+[:arrow_up:](#top)
