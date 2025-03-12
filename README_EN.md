@@ -33,14 +33,9 @@ https://github.com/cmliu/socks5-for-serv00
 **The site does not support more than 3 open ports. So you can customize a UDP to use the telegram proxy alongside the configurations.**
 
 # Installation:
+```
+bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/start.sh)
+```
+<kbd> <br> **made by ARV8N** <br> </kbd> 
 
-public static String monthNames[] = {"bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/start.sh)"};
-
-bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/start.sh )\
-<kbd> <br> **made by ARV8N** <br> </kbd> \
 [:arrow_up:](#top)
-
-```
-hi
-```
-hi
