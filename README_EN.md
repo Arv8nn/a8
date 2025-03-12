@@ -40,3 +40,11 @@ bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/st
 <kbd> <br> **made by ARV8N** <br> </kbd> \
 [:arrow_up:](#top)
 
+function copyToClipboard() {
+    const textToCopy = document.getElementById('text-to-copy').innerText; // یا innerHTML
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        alert('متن کپی شد!');
+    }).catch(err => {
+        console.error('خطا در کپی متن: ', err);
+    });
+}
