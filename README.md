@@ -12,11 +12,14 @@ Hysteria2, TUIC5, VLESS-Reality, VMESS-WS/ARGO
 https://github.com/yonggekkk/sing-box-yg
 
 https://github.com/eooce/Sing-box
+
+<p align="right">
 > [!note]
 > برای نصب سینگ باکس در اسکریپت yonggekk منتظر بمونید تا اسکریپت ipها را لیست کند سپس از ip های داده شده که در مرحله نصب نیاز است استفاده کنید. در مراحل بعدی با زدن enter بصورت پیش فرض مقادیر ست خواهند شد.
 
 > [!important]
 > هر اسکریپتی که برای دریافت کانفیگ نصب می کنید از همان اسکریپت برای حذف استفاده کنید.
+</p>
 
 - ## socks5
 
