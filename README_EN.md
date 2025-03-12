@@ -4,7 +4,7 @@
 
 Hysteria2, TUIC5, VLESS-Reality, VMESS-WS/ARGO
 
-> **automatic keep alive**
+> <ins>**automatic keep alive**.</ins>
 # The main link of the script projects.
 
 https://github.com/yonggekkk/sing-box-yg
