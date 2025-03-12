@@ -1,4 +1,5 @@
 <a name="top"></a>
+[English version](https://github.com/ambe2222/a8/blob/main/README_EN.md)
 # 🔥اسکریپت چندکاره دریافت کانفیگ serv00🔥
 
 **پروتکل ها**
