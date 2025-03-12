@@ -1,7 +1,7 @@
 <a name="top"></a>
-# 🔥اسکریپت چندکاره دریافت کانفیگ 🔥serv00
+# 🔥اسکریپت چندکاره دریافت کانفیگ serv00🔥
 
-پروتکل ها
+**پروتکل ها**
 
 Hysteria2, TUIC5, VLESS-Reality, VMESS-WS/ARGO
 
