@@ -21,14 +21,14 @@ In the next steps, pressing the Enter key will set the default values.
 
 https://github.com/cmliu/socks5-for-serv00
 > [!note]
->To use the Socks5, first log in to Devilweb WebPanel and create a TCP port with a value of 60000-1025 in the Port Reservation section, then run the Serv00 Socks5 script.
+>To use the Socks5, first log in to Devilweb WebPanel and create a TCP port with a value of 1025-60000 in the Port Reservation section, then run the Serv00 Socks5 script.
 
 > [!important] 
 **The site does not support more than 3 open ports. So you can remove a UDP port to use the Socks5 next to the sing-box configures.**
 
 - ## MTproxy
 > [!note]
->To use the telegram proxy, first log in to Devilweb WebPanel and create a TCP port with a value of 60000-1025 in the Port Reservation section, then run the Serv00 MTProxy script.
+>To use the telegram proxy, first log in to Devilweb WebPanel and create a TCP port with a value of 1025-60000 in the Port Reservation section, then run the Serv00 MTProxy script.
 
 > [!important]
 **The site does not support more than 3 open ports. So you can remove a UDP port to use the Socks5 next to the sing-box configures.**
