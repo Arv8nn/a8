@@ -34,7 +34,7 @@ https://github.com/cmliu/socks5-for-serv00
 
 # Installation:
 
-public static String monthNames[] = {bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/start.sh )}
+public static String monthNames[] = {"bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/start.sh)"}
 bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/start.sh )\
 <kbd> <br> **made by ARV8N** <br> </kbd> \
 [:arrow_up:](#top)
