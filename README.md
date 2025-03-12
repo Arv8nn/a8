@@ -5,7 +5,8 @@
 
 Hysteria2, TUIC5, VLESS-Reality, VMESS-WS/ARGO
 
-automatic keep alive
+> <ins>**automatic keep alive**.</ins>
+---
 
 # لینک اصلی پروژه های اسکریپت دریافت کانفیگ
 https://github.com/yonggekkk/sing-box-yg
