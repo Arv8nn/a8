@@ -1,3 +1,4 @@
+<a name="top"></a>
 # Multi-user script receiving serv00 Configuration
 
 **Protocols**\
@@ -29,5 +30,6 @@ To use the telegram proxy, first log in to Devilweb WebPanel and create a TCP po
 The site does not support more than 3 open ports. So you can customize a UDP to use the telegram proxy alongside the configurations.
 Installation:
 
-bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/start.sh )
+bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/start.sh )\
 made by ARV8N 
+[:arrow_up:](#top)
