@@ -24,8 +24,9 @@ The site does not support more than 3 open ports. So you can customize a UDP por
 ## MTproxy
 > [!note]
 >To use the telegram proxy, first log in to Devilweb WebPanel and create a TCP port with a value of 60000-1025 in the Port Reservation section, then run the Serv00 MTProxy script.
-The site does not support more than 3 open ports. So you can customize a UDP to use the telegram proxy alongside the configurations.\
-Installation:
+The site does not support more than 3 open ports. So you can customize a UDP to use the telegram proxy alongside the configurations.
+
+# Installation:
 
 bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/start.sh )\
 made by ARV8N\
