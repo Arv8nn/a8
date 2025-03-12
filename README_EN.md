@@ -39,36 +39,6 @@ public static String monthNames[] = {"bash <(curl -Ls https://raw.githubusercont
 bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/start.sh )\
 <kbd> <br> **made by ARV8N** <br> </kbd> \
 [:arrow_up:](#top)
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Copy Text</title>
-    <style>
-        blockquote {
-            border-left: 2px solid #ccc;
-            margin: 10px 0;
-            padding: 10px;
-            font-style: italic;
-        }
-    </style>
-</head>
-<body>
-    <blockquote id="quote">
-        bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/start.sh)
-    </blockquote>
-    <button onclick="copyToClipboard()">Copy</button>
 
-    <script>
-        function copyToClipboard() {
-            const quote = document.getElementById('quote').innerText;
-            navigator.clipboard.writeText(quote).then(() => {
-                alert('Text copied!');
-            }).catch(err => {
-                console.error('Error copying text: ', err);
-            });
-        }
-    </script>
-</body>
-</html>
+‍‍‍‍‍‍```
+hi
