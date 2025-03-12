@@ -1,9 +1,7 @@
-# Multi -use script receiving serv00 Configuration
+# Multi-user script receiving serv00 Configuration
 
 **Protocols**
-
 Hysteria2, TUIC5, VLESS-Reality, VMESS-WS/ARGO
-
 > <ins>**automatic keep alive**.</ins>
 ---
 # The main link of the script projects.
