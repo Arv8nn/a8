@@ -14,7 +14,7 @@ https://github.com/eooce/Sing-box
 >Wait for the Yonggekk script to install the Singh Box in the Yonggekk script to list the IP scripts, then use the given IPs that are required during the installation phase. In the next stages, the Enter will be set by default.
 Use the same script to delete any script you install to receive configuration.
 
-# socks5
+## socks5
 
 https://github.com/cmliu/socks5-for-serv00
 
