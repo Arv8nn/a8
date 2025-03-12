@@ -31,5 +31,5 @@ The site does not support more than 3 open ports. So you can customize a UDP to 
 Installation:
 
 bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/start.sh )\
-made by ARV8N 
+made by ARV8N\
 [:arrow_up:](#top)
