@@ -44,3 +44,26 @@ bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/st
     این یک باکس نقل قول است.
 </blockquote>
 
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>کپی متن</title>
+</head>
+<body>
+    <blockquote id="quote">
+        این یک باکس نقل قول است که می‌توانید آن را کپی کنید.
+    </blockquote>
+    <button onclick="copyToClipboard()">کپی</button>
+
+    <script>
+        function copyToClipboard() {
+            const quote = document.getElementById('quote').innerText;
+            navigator.clipboard.writeText(quote).then(() => {
+                alert('متن کپی شد!');
+            });
+        }
+    </script>
+</body>
+</html>
