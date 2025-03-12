@@ -40,4 +40,6 @@ bash <(curl -Ls https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/st
 <kbd> <br> **made by ARV8N** <br> </kbd> \
 [:arrow_up:](#top)
 
-‍‍‍‍‍‍```
+```
+```
+hi
