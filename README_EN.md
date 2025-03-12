@@ -15,7 +15,7 @@ https://github.com/eooce/Sing-box
 In the next steps, pressing the Enter key will set the default values.
 
 > [!IMPORTANT]
->**Use the same script to delete any script you install to receive configuration.**
+>**Whatever script you installed to get the configuration, use the same script to remove it..**
 
 - ## socks5
 
@@ -24,14 +24,14 @@ https://github.com/cmliu/socks5-for-serv00
 >To use the Socks5, first log in to Devilweb WebPanel and create a TCP port with a value of 60000-1025 in the Port Reservation section, then run the Serv00 Socks5 script.
 
 > [!important] 
-**The site does not support more than 3 open ports. So you can customize a UDP port to use the Socks5 next to the configures.**
+**The site does not support more than 3 open ports. So you can remove a UDP port to use the Socks5 next to the sing-box configures.**
 
 - ## MTproxy
 > [!note]
 >To use the telegram proxy, first log in to Devilweb WebPanel and create a TCP port with a value of 60000-1025 in the Port Reservation section, then run the Serv00 MTProxy script.
 
 > [!important]
-**The site does not support more than 3 open ports. So you can customize a UDP to use the telegram proxy alongside the configurations.**
+**The site does not support more than 3 open ports. So you can remove a UDP port to use the Socks5 next to the sing-box configures.**
 
 # Installation:
 ```
