@@ -10,6 +10,7 @@ cyan="\033[36m"
 
 yonggekkk_script="https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/serv%201/serv00.sh"
 eooce_script="https://raw.githubusercontent.com/eooce/sing-box/main/sb_serv00.sh"
+eooce_org_script="https://raw.githubusercontent.com/Arv8nn/a8/refs/heads/main/serv%202/sb_serv00.sh"
 socks5_script="https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/socks5/install-socks5.sh"
 mtproxy_script="https://raw.githubusercontent.com/ambe2222/a8/refs/heads/main/mt.sh"
 
@@ -21,6 +22,11 @@ function yonggekkk () {
 function eooce () {
     clear
     bash <(curl -Ls "$eooce_script") || echo "Error: Failed to execute script."
+}
+
+function eooce_org () {
+    clear
+    bash <(curl -Ls "$eooce_org_script") || echo "Error: Failed to execute script."
 }
 
 function socks5 () {
@@ -56,15 +62,16 @@ function menu () {
     echo "==================================================================="
     echo -e "${bold}${green}\t\t***** please select an option *****${reset}"
     echo -e "${yellow}\t1. yonggekkk serv00 script (vless , vmess , hy2 , tuic)\n"
-    echo -e "\t2. eooce serv00 script (vless , vmess , hy2 , tuic)${reset}"
+    echo -e "\t2. eooce serv00 script (vless , vmess , hy2 , tuic)"
+    echo -e "\t3. eooce serv00 original script (vless , vmess , hy2 , tuic)${reset}"
     echo -e "${red}\tthis script has problems whit other language so:"
     echo -e "\toption 1 for install. in the next steps just press enter"
     echo -e "\toption 2 for keepalive service"
     echo -e "\toption 3 for uninstall\n${reset}"
-    echo -e "${yellow}\t3. serv00 socks5\n"
-    echo -e "\t4. serv00 MTproxy\n"
-    echo -e "\t5. Exit\n"
-    read -p "select what you want [1-5] : " option
+    echo -e "${yellow}\t4. serv00 socks5\n"
+    echo -e "\t5. serv00 MTproxy\n"
+    echo -e "\t6. Exit\n"
+    read -p "select what you want [1-6] : " option
     echo -e "${reset}"
 }
 while true; do
@@ -85,7 +92,7 @@ while true; do
         2) clear
             echo -e "${bold}${blue}runnig eooce serv00 script${reset}"
             sleep 3
-            eooce 
+            eooce
             echo -e "${bold}${red}return to menu (y | n)? "
             read a
             if [[ $a = "y" || $a = "Y" ]]; then
@@ -94,6 +101,17 @@ while true; do
                 break 2
             fi ;;
         3) clear
+            echo -e "${bold}${blue}runnig eooce serv00 original script${reset}"
+            sleep 3
+            eooce_org 
+            echo -e "${bold}${red}return to menu (y | n)? "
+            read a
+            if [[ $a = "y" || $a = "Y" ]]; then
+                continue
+            elif [[ $a = "n" || $a = "N" ]]; then
+                break 2
+            fi ;;
+        4) clear
             echo -e "${bold}${blue}runnig socks5 serv00 script${reset}"
             sleep 3
             socks5 
@@ -104,7 +122,7 @@ while true; do
             elif [[ $a = "n" || $a = "N" ]]; then
                 break 2
             fi ;;
-        4) clear
+        5) clear
             echo -e "${bold}${blue}runnig MTproxy serv00 script${reset}"
             sleep 3
             MTproxy 
@@ -115,10 +133,10 @@ while true; do
             elif [[ $a = "n" || $a = "N" ]]; then
                 break 2
             fi ;;
-        5) echo -e "${bold}${green}exiting program${reset}"
+        6) echo -e "${bold}${green}exiting program${reset}"
             sleep 1
             exit ;;
-        *) echo -e "${red}${bold}choose a valid option [1-5]${reset}"
+        *) echo -e "${red}${bold}choose a valid option [1-6]${reset}"
             sleep 2
             break ;;
     esac
