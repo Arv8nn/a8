@@ -63,7 +63,7 @@ function menu () {
     echo -e "${bold}${green}\t\t***** please select an option *****${reset}"
     echo -e "${yellow}\t1. yonggekkk serv00 script (vless , vmess , hy2 , tuic)\n"
     echo -e "\t2. eooce serv00 script (vless , vmess , hy2 , tuic)${reset}"
-    echo -e "${red}\tIf the translated version doesn't work, use the next option\n${reset}"
+    echo -e "${red}\tif the translated version doesn't work, use the next option\n${reset}"
     echo -e "\t3. eooce serv00 original script (vless , vmess , hy2 , tuic)${reset}"
     echo -e "${red}\tthis script has problems whit other language so:"
     echo -e "\toption 1 for install. in the next steps just press enter"
